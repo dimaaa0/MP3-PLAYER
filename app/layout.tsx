@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -10,6 +11,21 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const quicksandBold = localFont({
+  src: "./fonts/Quicksand-Bold.ttf",
+  variable: "--font-quicksand-bold",
+});
+
+const quicksandRegular = localFont({
+  src: "./fonts/Quicksand-Regular.ttf",
+  variable: "--font-quicksand-regular",
+});
+
+const quicksandLight = localFont({
+  src: "./fonts/Quicksand-Light.ttf",
+  variable: "--font-quicksand-light",
 });
 
 export const metadata: Metadata = {
@@ -24,9 +40,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} ${quicksandBold.variable} ${quicksandRegular.variable} ${quicksandLight.variable} antialiased`}>
         {children}
       </body>
     </html>

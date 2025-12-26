@@ -3,14 +3,19 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --color-grey: #1e232d6c;
 }
 
 @theme inline {
+  --font-fb: var(--font-quicksand-bold);
+  --font-fr: var(--font-quicksand-regular);
+  --font-fl: var(--font-quicksand-light);
+  --color-grey: var(--color-grey);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
+
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -19,8 +24,16 @@
   }
 }
 
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-fr);
+}
+
+.container {
+  max-width: 1320px;
+  width: 100%;
+  padding: 0 15px;
+  margin: 0 auto;
 }
