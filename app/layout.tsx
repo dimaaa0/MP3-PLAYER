@@ -40,7 +40,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${quicksandBold.variable} ${quicksandRegular.variable} ${quicksandLight.variable} antialiased`}>
+      <body className={` ${geistSans.variable} ${geistMono.variable} ${quicksandBold.variable} ${quicksandRegular.variable} ${quicksandLight.variable} antialiased`}>
         {children}
       </body>
     </html>

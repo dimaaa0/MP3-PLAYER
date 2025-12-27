@@ -28,14 +28,14 @@ export default function Home({ }) {
     };
 
     return (
-        <div className="flex justify-start gap-2 p-4" >
+        <div className="flex font-fr justify-start gap-2 py-4 text-white" >
             {categories.map((cat) => (
                 <button
                     key={cat.id}
                     onClick={() => handleClick(cat.id)}
                     className={`px-4 py-2 rounded-lg cursor-pointer transition-colors ${cat.active
-                        ? "bg-blue-600 text-white"
-                        : "bg-[#121926be] text-gray-300 hover:bg-[#1c2638]"
+                        ? "bg-[#45474b]"
+                        : "bg-[#3c414b80]  hover:bg-[#5a93b6b9]"
                         }`}
                 >
                     {cat.label}

@@ -4,7 +4,7 @@ import MusicList from './components/MusicList'
 
 export default function Home() {
   return (
-    <div className='container w-full'>
+    <div className='container w-full '>
       <Header />
       <Category />
       <MusicList />
