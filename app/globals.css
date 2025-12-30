@@ -13,9 +13,19 @@
 }
 
 body {
-  background: rgb(20, 20, 20);
   color: white;
   font-family: var(--font-fr);
+  background-color: rgba(0, 0, 0, 0.938);
+
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .container {
@@ -23,4 +33,11 @@ body {
   width: 100%;
   padding: 0 15px;
   margin: 0 auto;
+}
+
+.btn {
+  border-radius: 8px;
+  font-size: 14px;
+  position: relative;
+
 }

@@ -1,8 +1,11 @@
 import { Star, Settings } from 'lucide-react';
 
 const MusicList = () => {
+
+
+
     return (
-        <div className="card font-fr rounded-lg flex justify-between w-full p-3.5 bg-[#7776763b] text-white">
+        <div className=" cursor-pointer card font-fr rounded-lg flex justify-between w-full p-3.5 bg-[#7776763b] text-white">
 
             <div className="title flex gap-6">
                 <div className="bg-black w-16 h-full"></div>
@@ -19,6 +22,8 @@ const MusicList = () => {
                 <Settings className='w-4.5 h-4.5 cursor-pointer' />
 
             </div>
+
+
 
 
         </div>

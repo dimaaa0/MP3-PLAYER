@@ -11,12 +11,12 @@ interface CategoryType {
 export default function Home({ }) {
     const [categories, setCategories] = useState<CategoryType[]>([
         { id: 1, label: 'Favorites', active: false },
-        { id: 2, label: 'All', active: true },
-        { id: 3, label: 'Jazz', active: false },
-        { id: 4, label: 'Pop', active: false },
-        { id: 5, label: 'Rock', active: false },
-        { id: 6, label: 'Hip-hop', active: false },
-        { id: 7, label: 'Electronic', active: false }
+        // { id: 2, label: 'All', active: true },
+        // { id: 3, label: 'Jazz', active: false },
+        // { id: 4, label: 'Pop', active: false },
+        // { id: 5, label: 'Rock', active: false },
+        // { id: 6, label: 'Hip-hop', active: false },
+        // { id: 7, label: 'Electronic', active: false }
     ]);
 
     const handleClick = (id: number) => {

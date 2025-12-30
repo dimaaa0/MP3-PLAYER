@@ -1,32 +1,104 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Image from "next/image"
 import { Search } from "lucide-react"
+import Link from "next/link"
+import { useUser, useStackApp, UserButton } from "@stackframe/stack";
 
 const Header = () => {
+    const user = useUser();
+    const app = useStackApp();
+
+    const [searchTerm, setSearchTerm] = useState("");
+    const [searchResults, setSearchResults] = useState([]);
+    const [author, setAuthor] = useState([]);
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(async () => {
+            if (searchTerm.length >= 2) {
+                try {
+                    const res = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
+                    const data = await res.json();
+                    setSearchResults(data.results?.trackmatches?.track || []);
+                    setAuthor(data.results?.trackmatches?.track?.[0]?.artist || []);
+                    console.log(data.results?.trackmatches?.track?.[1]?.artist); // ПОИСК АВТОРА 
+                    // console.log(data.results?.trackmatches?.track);
+                } catch (err) {
+                    console.error(err);
+                }
+            } else {
+                setSearchResults([]);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn)
+
+    }, [searchTerm]);
+
+    const trackInfo = (e) => {
+        console.log(e);
+    }
+
+
+
+
     return (
-        <div className="mt-6.5 flex content-between justify-between w-full">
-            <div className="title 
-            flex items-center content-center gap-1.5">
-                <Image src="music.svg" alt="" width={38} height={38}
-                    className=" p-1.5 rounded-lg bg-[#3b33339a]"
-                />
-                <h1 className="font-fb text-2xl text-white">Music Stream</h1>
+        <div className="flex flex-col items-start mt-3">
+            <div className="registration flex items-end absolute right-5 bottom-1 justify-end gap-3 mb-3">
+                {!user ? (
+                    <>
+                        <button className="btn"><Link href='/sign-in'>Log in</Link></button>
+                        <button className="btn"><Link href='/sign-up'>Sign up</Link></button>
+                    </>
+                ) : (
+                    <div className="flex h-full items-center">
+                        <span className="text-white h-full text-sm"><UserButton /></span>
+                        <button
+                            className="btn cursor-pointer text-white font-fr px-3 py-1 rounded"
+                            onClick={() => app.signOut()}
+                        >
+                            Log out
+                        </button>
+                    </div>
+                )}
             </div>
 
-            <div className="searcher text-white font-fr relative w-full max-w-85">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                    <Search
-                        className="absolute left-2.5 width={16} height={16}"
+            <div className="flex content-between justify-between w-full relative">
+                <div className="title flex items-center content-center gap-1.5">
+                    <Image src="music.svg" alt="" width={38} height={38}
+                        className="p-1.5 rounded-lg bg-[#3b33339a]"
                     />
+                    <h1 className="font-fb text-2xl text-white">Music Stream</h1>
                 </div>
 
-                <input
-                    type="text"
-                    placeholder="Enter the name of the artist of the song"
-                    className="w-full bg-[#0000003b] font-fr text-[14px] text-white text-sm rounded-xl border py-3 pl-10 pr-4 outline-none transition-colors placeholder:text-white"
-                />
+                <div className="searcher text-white font-fr relative w-full max-w-65">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-4">
+                        <Search className="absolute cursor-pointer left-2.5" size={14} />
+                    </div>
+                    <input
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        type="text"
+                        placeholder="Search tracks..."
+                        className="w-full bg-[#0000003b] font-fr text-[14px] text-white text-sm rounded-xl border py-3 pl-10 pr-4 outline-none transition-colors placeholder:text-white"
+                    />
+
+
+                    {searchResults.length > 0 && (
+                        <div className="max-h-60 overflow-y-auto hide-scrollbar absolute top-full left-0 w-full bg-[#1a1a1a] border border-gray-700 rounded-xl mt-2 py-2 z-50 shadow-2xl max-h-60 overflow-y-auto">
+
+                            {searchResults.map((track: any, index) => (
+                                <div key={index} onClick={() => trackInfo(track)} className="px-4 py-2 hover:bg-white/10 cursor-pointer flex flex-col">
+                                    <span className="text-sm font-bold">{track.name}</span>
+                                    <span className="text-xs text-gray-400">{track.artist}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
-        </div >
+        </div>
     )
 }
 
-export default Header
+export default Header;
