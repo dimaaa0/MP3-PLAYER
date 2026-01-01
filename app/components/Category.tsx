@@ -1,12 +1,7 @@
 'use client'
 
 import { useState } from "react";
-
-interface CategoryType {
-    id: number;
-    label: string;
-    active: boolean;
-}
+import { CategoryType } from '../types/types'
 
 export default function Home({ }) {
     const [categories, setCategories] = useState<CategoryType[]>([

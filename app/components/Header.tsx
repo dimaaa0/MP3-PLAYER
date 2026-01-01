@@ -5,47 +5,54 @@ import Image from "next/image"
 import { Search } from "lucide-react"
 import Link from "next/link"
 import { useUser, useStackApp, UserButton } from "@stackframe/stack";
+import { Track, trackType } from '../types/types'
 
-const Header = () => {
+
+
+interface HeaderProps {
+    onMusicUpdate: (tracks: Track[]) => void;
+}
+
+
+
+const Header = ({ onMusicUpdate }: HeaderProps) => {
+
+
+
+
     const user = useUser();
     const app = useStackApp();
 
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState([]);
-    const [author, setAuthor] = useState([]);
 
-    useEffect(() => {
+
+    useEffect(() => { //^ САМ ПРОПС РОДИТЕЛЮ И СИСТЕМА ПОИСКА
         const delayDebounceFn = setTimeout(async () => {
             if (searchTerm.length >= 2) {
                 try {
                     const res = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
                     const data = await res.json();
-                    setSearchResults(data.results?.trackmatches?.track || []);
-                    setAuthor(data.results?.trackmatches?.track?.[0]?.artist || []);
-                    console.log(data.results?.trackmatches?.track?.[1]?.artist); // ПОИСК АВТОРА 
-                    // console.log(data.results?.trackmatches?.track);
+                    const tracks = data.results?.trackmatches?.track || [];
+
+
+                    setSearchResults(tracks);
+                    onMusicUpdate(tracks);
+
+
                 } catch (err) {
                     console.error(err);
                 }
-            } else {
-                setSearchResults([]);
             }
         }, 500);
 
-        return () => clearTimeout(delayDebounceFn)
+        return () => clearTimeout(delayDebounceFn);
 
-    }, [searchTerm]);
-
-    const trackInfo = (e) => {
-        console.log(e);
-    }
-
-
-
+    }, [searchTerm, onMusicUpdate]);
 
     return (
         <div className="flex flex-col items-start mt-3">
-            <div className="registration flex items-end absolute right-5 bottom-1 justify-end gap-3 mb-3">
+            <div className="registration flex items-end fixed right-5 bottom-1 justify-end gap-3 mb-3">
                 {!user ? (
                     <>
                         <button className="btn"><Link href='/sign-in'>Log in</Link></button>
@@ -80,19 +87,20 @@ const Header = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                         type="text"
                         placeholder="Search tracks..."
-                        className="w-full bg-[#0000003b] font-fr text-[14px] text-white text-sm rounded-xl border py-3 pl-10 pr-4 outline-none transition-colors placeholder:text-white"
+                        className="w-full z-999 bg-[#0000003b] font-fr text-[14px] text-white text-sm rounded-xl border py-3 pl-10 pr-4 outline-none transition-colors placeholder:text-white"
                     />
 
 
-                    {searchResults.length > 0 && (
-                        <div className="max-h-60 overflow-y-auto hide-scrollbar absolute top-full left-0 w-full bg-[#1a1a1a] border border-gray-700 rounded-xl mt-2 py-2 z-50 shadow-2xl max-h-60 overflow-y-auto">
-
-                            {searchResults.map((track: any, index) => (
-                                <div key={index} onClick={() => trackInfo(track)} className="px-4 py-2 hover:bg-white/10 cursor-pointer flex flex-col">
-                                    <span className="text-sm font-bold">{track.name}</span>
-                                    <span className="text-xs text-gray-400">{track.artist}</span>
-                                </div>
-                            ))}
+                    {searchResults.length > 0 && searchTerm !== '' && (
+                        <div className="bg-white ">
+                            <div className="max-h-60 z-999 overflow-y-auto hide-scrollbar absolute top-full left-0 w-full bg-[#1a1a1a] border border-gray-700 rounded-xl mt-2 py-2 z-50 shadow-2xl max-h-60 overflow-y-auto">
+                                {searchResults.map((track: trackType, index) => (
+                                    <div key={index} className="px-4 py-2 hover:bg-white/10 cursor-pointer flex flex-col">
+                                        <span className="text-sm font-bold">{track.name}</span>
+                                        <span className="text-xs text-gray-400">{track.artist}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
