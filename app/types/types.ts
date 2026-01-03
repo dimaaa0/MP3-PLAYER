@@ -17,3 +17,12 @@ export interface trackType {
     name: string;
     artist: string;
 }
+
+export interface favoritesType {
+    name: string;
+    artist: string;
+    duration: { [key: number]: string };
+    imageUrl: { [key: number]: string };
+    genre: { [key: number]: string };
+    isLoading: boolean;
+}

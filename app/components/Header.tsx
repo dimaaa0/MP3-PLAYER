@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image"
-import { Search } from "lucide-react"
+import { Search, X } from "lucide-react"
 import Link from "next/link"
 import { useUser, useStackApp, UserButton } from "@stackframe/stack";
 import { Track, trackType } from '../types/types'
@@ -13,19 +13,13 @@ interface HeaderProps {
     onMusicUpdate: (tracks: Track[]) => void;
 }
 
-
-
 const Header = ({ onMusicUpdate }: HeaderProps) => {
-
-
-
 
     const user = useUser();
     const app = useStackApp();
 
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState([]);
-
 
     useEffect(() => { //^ САМ ПРОПС РОДИТЕЛЮ И СИСТЕМА ПОИСКА
         const delayDebounceFn = setTimeout(async () => {
@@ -35,10 +29,8 @@ const Header = ({ onMusicUpdate }: HeaderProps) => {
                     const data = await res.json();
                     const tracks = data.results?.trackmatches?.track || [];
 
-
                     setSearchResults(tracks);
                     onMusicUpdate(tracks);
-
 
                 } catch (err) {
                     console.error(err);
@@ -49,6 +41,20 @@ const Header = ({ onMusicUpdate }: HeaderProps) => {
         return () => clearTimeout(delayDebounceFn);
 
     }, [searchTerm, onMusicUpdate]);
+
+    const [visibility, setVisibility] = useState(false);
+
+    const handleChangeToVisibility = () => {
+        setVisibility(true);
+    };
+
+    const handleChangeToInvisibility = () => {
+        setVisibility(false);
+    };
+
+    const handleClearing = () => {
+        setSearchTerm("");
+    };
 
     return (
         <div className="flex flex-col items-start mt-3">
@@ -79,21 +85,31 @@ const Header = ({ onMusicUpdate }: HeaderProps) => {
                     <h1 className="font-fb text-2xl text-white">Music Stream</h1>
                 </div>
 
-                <div className="searcher text-white font-fr relative w-full max-w-65">
+                <div
+                    onMouseEnter={handleChangeToVisibility}
+                    onMouseLeave={handleChangeToInvisibility}
+                    className="searcher relative  text-white font-fr w-full max-w-65">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-4">
                         <Search className="absolute cursor-pointer left-2.5" size={14} />
                     </div>
                     <input
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        value={searchTerm}
+                        onChange={(e) => {
+                            setSearchTerm(e.target.value);
+                        }}
+
                         type="text"
                         placeholder="Search tracks..."
-                        className="w-full z-999 bg-[#0000003b] font-fr text-[14px] text-white text-sm rounded-xl border py-3 pl-10 pr-4 outline-none transition-colors placeholder:text-white"
+                        className="w-full z-999 bg-[#0000003b] font-fr text-[14px] text-white text-sm rounded-xl border py-3 pl-10 pr-12 outline-none transition-colors placeholder:text-white"
                     />
+                    <button onClick={handleClearing} className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <X className={`w-5 h-5 cursor-pointer ${visibility ? 'opacity-100' : 'opacity-0'}`} />
+                    </button>
 
 
                     {searchResults.length > 0 && searchTerm !== '' && (
                         <div className="bg-white ">
-                            <div className="max-h-60 z-999 overflow-y-auto hide-scrollbar absolute top-full left-0 w-full bg-[#1a1a1a] border border-gray-700 rounded-xl mt-2 py-2 z-50 shadow-2xl max-h-60 overflow-y-auto">
+                            <div className="max-h-60 z-999 overflow-y-auto hide-scrollbar absolute top-full left-0 w-full bg-[#1a1a1a] border border-gray-700 rounded-xl mt-2 py-2 shadow-2xl">
                                 {searchResults.map((track: trackType, index) => (
                                     <div key={index} className="px-4 py-2 hover:bg-white/10 cursor-pointer flex flex-col">
                                         <span className="text-sm font-bold">{track.name}</span>

@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const API_KEY = process.env.NEXT_PUBLIC_LASTFM_API_KEY;
 
     if (!artist || !track) {
-        return NextResponse.json({ error: 'Артист и трек обязательны' }, { status: 400 });
+        return NextResponse.json({ error: 'Singer and track are required' }, { status: 400 });
     }
 
     try {
@@ -25,6 +25,6 @@ export async function GET(request: Request) {
 
         return NextResponse.json(data);
     } catch (error) {
-        return NextResponse.json({ error: 'Ошибка сервера при получении инфо' }, { status: 500 });
+        return NextResponse.json({ error: 'server mistake' }, { status: 500 });
     }
 }
