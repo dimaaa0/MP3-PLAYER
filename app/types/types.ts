@@ -6,23 +6,57 @@ export interface CategoryType {
 
 
 export interface Track {
-    id: string;
     name: string;
-    artist: string;
-    image: string;
+    artist: {
+        name: string;
+    };
+    duration: string;
+    image?: { size: string, '#text': string }[];
     url: string;
-}
-
-export interface trackType {
-    name: string;
-    artist: string;
+    mbid?: string;
 }
 
 export interface favoritesType {
     name: string;
-    artist: string;
-    duration: { [key: number]: string };
-    imageUrl: { [key: number]: string };
-    genre: { [key: number]: string };
+    artist: {
+        name: string;
+    };
+    imageUrl: string;
+    duration: string;
+    genre: string;
+}
+
+export interface TopTracksResponseType {
+    tracks: {
+        track: Track[];
+        error?: string;
+        message?: string;
+    }
+}
+
+export interface UseTrackToReturn {
+    duration: string[];
+    imageUrl: string[];
+    genre: string[];
     isLoading: boolean;
+}
+
+export interface MusicListProps {
+    music: Track[];
+    inputValue: boolean;
+    recentCategory: string;
+}
+
+export interface StationData {
+    stations: UseTrackToReturn[];
+}
+
+export interface HeaderProps {
+    onMusicUpdate: (tracks: Track[]) => void;
+    setInputValue: (value: boolean) => void;
+}
+
+interface PlayingTrack {
+    name: string;
+    artist: string;
 }

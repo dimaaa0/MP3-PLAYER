@@ -5,21 +5,29 @@ import Image from "next/image"
 import { Search, X } from "lucide-react"
 import Link from "next/link"
 import { useUser, useStackApp, UserButton } from "@stackframe/stack";
-import { Track, trackType } from '../types/types'
+import { Track, trackType, HeaderProps } from '../types/types'
 
 
 
-interface HeaderProps {
-    onMusicUpdate: (tracks: Track[]) => void;
-}
 
-const Header = ({ onMusicUpdate }: HeaderProps) => {
+const Header = ({ onMusicUpdate, setInputValue }: HeaderProps) => {
 
     const user = useUser();
     const app = useStackApp();
 
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState([]);
+
+    useEffect(() => {
+        setInputValue(searchTerm.length < 2);
+        if (searchTerm.length < 2) {
+            setSearchResults([]);
+            onMusicUpdate([]);
+        }
+    }, [searchTerm, setInputValue, onMusicUpdate]);
+
+
+
 
     useEffect(() => { //^ САМ ПРОПС РОДИТЕЛЮ И СИСТЕМА ПОИСКА
         const delayDebounceFn = setTimeout(async () => {
@@ -56,8 +64,12 @@ const Header = ({ onMusicUpdate }: HeaderProps) => {
         setSearchTerm("");
     };
 
+    const handleReload = () => {
+        window.location.reload();
+    };
+
     return (
-        <div className="flex flex-col items-start mt-3">
+        <div className="flex flex-col items-start mt-6">
             <div className="registration flex items-end fixed right-5 bottom-1 justify-end gap-3 mb-3">
                 {!user ? (
                     <>
@@ -76,9 +88,8 @@ const Header = ({ onMusicUpdate }: HeaderProps) => {
                     </div>
                 )}
             </div>
-
-            <div className="flex content-between justify-between w-full relative">
-                <div className="title flex items-center content-center gap-1.5">
+            <div className="flex content-between cursor-pointer justify-between w-full relative">
+                <div onClick={handleReload} className="title flex items-center content-center gap-1.5">
                     <Image src="music.svg" alt="" width={38} height={38}
                         className="p-1.5 rounded-lg bg-[#3b33339a]"
                     />
@@ -106,9 +117,8 @@ const Header = ({ onMusicUpdate }: HeaderProps) => {
                         <X className={`w-5 h-5 cursor-pointer ${visibility ? 'opacity-100' : 'opacity-0'}`} />
                     </button>
 
-
                     {searchResults.length > 0 && searchTerm !== '' && (
-                        <div className="bg-white ">
+                        <div className="bg-white relative">
                             <div className="max-h-60 z-999 overflow-y-auto hide-scrollbar absolute top-full left-0 w-full bg-[#1a1a1a] border border-gray-700 rounded-xl mt-2 py-2 shadow-2xl">
                                 {searchResults.map((track: trackType, index) => (
                                     <div key={index} className="px-4 py-2 hover:bg-white/10 cursor-pointer flex flex-col">

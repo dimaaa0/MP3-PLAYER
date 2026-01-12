@@ -9,12 +9,21 @@ import { Track } from './types/types'
 export default function Home() {
 
   const [currentTracks, setCurrentTracks] = useState<Track[]>([]);
+  const [inputValue, setInputValue] = useState(false);
+  const [recentCategory, setRecentCategory] = useState('All');
 
   return (
     <div className='container'>
-      <Header onMusicUpdate={setCurrentTracks} />
-      <Category />
-      <MusicList music={currentTracks} />
+      <Header
+        onMusicUpdate={setCurrentTracks}
+        setInputValue={setInputValue}
+      />
+      <Category
+        setRecentCategory={setRecentCategory} />
+      <MusicList
+        music={currentTracks}
+        inputValue={inputValue}
+        recentCategory={recentCategory} />
     </div>
   );
 }

@@ -1,35 +1,53 @@
 import { useState, useEffect } from 'react';
-import { Track, favoritesType } from '../types/types';
+import { UseTrackToReturn, Track } from '../types/types';
 
 const formatDuration = (duration: string | number): string => {
-    const ms = typeof duration === 'string' ? parseInt(duration) : duration;
-    if (!ms || isNaN(ms)) return '--:--';
+    let num = typeof duration === 'string' ? parseInt(duration) : duration;
+    if (!num || isNaN(num)) return '--:--';
 
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
+    const isMilliseconds = num > 10000;
+
+    if (isMilliseconds) {
+        num = Math.floor(num / 1000);
+    }
+
+    const minutes = Math.floor(num / 60);
+    const seconds = num % 60;
+
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
-export const useTrackInfo = (music: Track[]): favoritesType => {
-    const [duration, setDuration] = useState<{ [key: number]: string }>({});  // ← ИЗМЕНЕНО на string
-    const [imageUrl, setImageUrl] = useState<{ [key: number]: string }>({});
-    const [genre, setGenre] = useState<{ [key: number]: string }>({});
+
+export const useTrackInfo = (music: Track[]): UseTrackToReturn => {
+    const [duration, setDuration] = useState<string[]>([]);
+    const [imageUrl, setImageUrl] = useState<string[]>([]);
+    const [genre, setGenre] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const fetchAllInfo = async () => {
-            if (music.length === 0) return;
+            if (music.length === 0) {
+                if (duration.length !== 0) setDuration([]);
+                if (imageUrl.length !== 0) setImageUrl([]);
+                if (genre.length !== 0) setGenre([]);
+                return;
+            }
 
             setIsLoading(true);
-            const newDuration: { [key: number]: string } = {};
-            const newImages: { [key: number]: string } = {};
-            const newGenre: { [key: number]: string } = {};
+            const newDuration: string[] = [];
+            const newImages: string[] = [];
+            const newGenre: string[] = [];
 
             await Promise.all(
                 music.map(async (track, index) => {
                     try {
+                        const artistName = typeof track.artist === 'string'
+
+                            ? track.artist
+                            : track.artist.name;
+
                         const res = await fetch(
-                            `/api/track-info?artist=${encodeURIComponent(track.artist)}&track=${encodeURIComponent(track.name)}`
+                            `/api/track-info?artist=${encodeURIComponent(artistName)}&track=${encodeURIComponent(track.name)}`
                         );
                         const data = await res.json();
 
@@ -39,14 +57,19 @@ export const useTrackInfo = (music: Track[]): favoritesType => {
                         newDuration[index] = formatDuration(data.track?.duration);
 
                         const imageArray = data.track?.album?.image;
-                        if (imageArray) {
-                            const imageObj = imageArray.find((img: any) => img.size === 'extralarge');
+                        if (imageArray && imageArray.length > 0) {
+                            const imageObj = imageArray.find((img: any) => img.size === 'extralarge')
+                                || imageArray.find((img: any) => img.size === 'large')
+                                || imageArray[imageArray.length - 1];
                             newImages[index] = imageObj?.['#text'] || '';
+                        } else {
+                            newImages[index] = '';
                         }
                     } catch (error) {
                         console.error("Ошибка загрузки трека:", error);
                         newDuration[index] = "--:--";
                         newGenre[index] = "Unknown";
+                        newImages[index] = '';
                     }
                 })
             );
@@ -62,5 +85,3 @@ export const useTrackInfo = (music: Track[]): favoritesType => {
 
     return { duration, imageUrl, genre, isLoading };
 };
-
-//^ ХУК ДЛЯ ПОЛУЧЕНИЯ ДОП. ИНФОРМАЦИИ О ТРЕКАХ
