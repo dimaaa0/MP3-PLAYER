@@ -1,19 +1,22 @@
 "use client";
 
-import { Star, Settings } from 'lucide-react';
+import { Star, Settings, Play, Pause, Loader2 } from 'lucide-react'; // Добавил иконки
 import { Track, favoritesType, MusicListProps } from '../types/types';
 import { useState } from 'react';
 import { useTrackInfo } from '../hooks/useTrackInfo';
 import { useTopTracks } from '../hooks/useTopTracks';
 import { useSelectByGenre } from '../hooks/useSelectByGenre';
+import { useYoutubePlayer } from '../hooks/useYoutubePlayer'; // 1. Импорт вашего хука
 
 const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const [favorites, setFavorites] = useState<favoritesType[]>([]);
+    
+    // 2. Инициализация хука плеера
+    const { activeVideoId, currentTrack, isLoadingVideo, playTrack } = useYoutubePlayer();
 
     const { tracks, loading } = useTopTracks();
     const selectByGenre = useSelectByGenre(recentCategory || 'All');
 
-    // Получаем информацию для разных списков
     const trendData = useTrackInfo(tracks?.tracks?.track || []);
     const searchData = useTrackInfo(music || []);
     const genreData = useTrackInfo(selectByGenre.data?.tracks || []);
@@ -57,21 +60,41 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         isLoading
     }: { name: string, artist: string, imageUrl: string, duration: string, isLoading?: boolean }) => {
         const active = isFavorite(name, artist);
+        
+        // 3. Проверка: является ли этот трек текущим (воспроизводимым)
+        const isCurrentActive = currentTrack?.name === name && currentTrack?.artist === artist;
 
         return (
-            <div className="cursor-pointer card rounded-lg flex justify-between w-full p-3.5 bg-[#7776763b] text-white hover:bg-[#7776765d] transition-colors">
+            <div 
+                // 4. Запуск воспроизведения при клике
+                onClick={() => playTrack(name, artist)}
+                className={`cursor-pointer card rounded-lg flex justify-between w-full p-3.5 transition-colors ${
+                    isCurrentActive ? 'bg-[#7776766d] ring-1 ring-blue-500' : 'bg-[#7776763b] hover:bg-[#7776765d]'
+                } text-white`}
+            >
                 <div className="title flex gap-6 items-center">
-                    <div className="w-16 h-16 shrink-0 flex items-center justify-center bg-gray-700 rounded-md overflow-hidden">
+                    <div className="relative w-16 h-16 shrink-0 flex items-center justify-center bg-gray-700 rounded-md overflow-hidden group">
                         {isLoading ? (
                             <div className="w-6 h-6 border-2 border-t-blue-500 rounded-full animate-spin"></div>
                         ) : imageUrl ? (
-                            <img src={imageUrl} alt="Cover" className="w-full h-full object-cover" />
+                            <>
+                                <img src={imageUrl} alt="Cover" className={`w-full h-full object-cover ${isCurrentActive ? 'opacity-50' : ''}`} />
+                                <div className={`absolute inset-0 flex items-center justify-center ${isCurrentActive ? 'flex' : 'hidden group-hover:flex'}`}>
+                                    {isCurrentActive && isLoadingVideo ? (
+                                        <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
+                                    ) : isCurrentActive ? (
+                                        <Pause className="w-6 h-6 text-white fill-white" />
+                                    ) : (
+                                        <Play className="w-6 h-6 text-white fill-white" />
+                                    )}
+                                </div>
+                            </>
                         ) : (
                             <span className="text-[10px]">No Cover</span>
                         )}
                     </div>
                     <div className="name flex flex-col justify-center">
-                        <h1 className="text-sm font-bold line-clamp-1">{name}</h1>
+                        <h1 className={`text-sm font-bold line-clamp-1 ${isCurrentActive ? 'text-blue-400' : ''}`}>{name}</h1>
                         <h3 className="text-xs text-gray-400">{artist}</h3>
                     </div>
                 </div>
@@ -79,7 +102,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                     <h3 className="text-sm tabular-nums mr-2">{duration}</h3>
                     <Star
                         onClick={(e) => {
-                            e.stopPropagation();
+                            e.stopPropagation(); // 5. Останавливаем всплытие, чтобы не сработал playTrack
                             handleFavorite(name, artist, imageUrl, duration);
                         }}
                         className={`w-5 h-5 transition-all ${active ? 'text-yellow-400 fill-yellow-400 scale-110' : 'text-gray-400'}`}
@@ -91,7 +114,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     };
 
     return (
-        <div className='flex flex-col gap-3'>
+        <div className='flex flex-col gap-3 pb-24'>
             {recentCategory === 'Favorites' ? (
                 favorites.length > 0 ? (
                     <div className="flex flex-col gap-2">
@@ -157,6 +180,16 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                             ))}
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* 6. Интеграция видео-плеера (невидимого) */}
+            {activeVideoId && (
+                <div className="hidden pointer-events-none opacity-0">
+                    <iframe
+                        src={`https://www.youtube.com/embed/${activeVideoId}?autoplay=1`}
+                        allow="autoplay"
+                    ></iframe>
                 </div>
             )}
         </div>
