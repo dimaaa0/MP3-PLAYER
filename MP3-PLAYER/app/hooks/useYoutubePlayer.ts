@@ -1,18 +1,15 @@
 import { useState } from 'react';
+import { PlayingTrack } from '../types/types';
 
-interface PlayingTrack {
-    name: string;
-    artist: string;
-}
 
 export const useYoutubePlayer = () => {
     const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
     const [currentTrack, setCurrentTrack] = useState<PlayingTrack | null>(null);
     const [isLoadingVideo, setIsLoadingVideo] = useState(false);
 
-    const playTrack = async (trackName: string, artistName: string) => {
+    const playTrack = async (trackName: string, artistName: string, imageUrl: string) => {
         if (currentTrack?.name === trackName && currentTrack?.artist === artistName) return;
-
+        
         setIsLoadingVideo(true);
         try {
             const response = await fetch(
@@ -22,7 +19,7 @@ export const useYoutubePlayer = () => {
 
             if (data.videoId) {
                 setActiveVideoId(data.videoId);
-                setCurrentTrack({ name: trackName, artist: artistName });
+                setCurrentTrack({ name: trackName, artist: artistName, imageUrl});
             } else {
                 console.error("Video ID not found");
             }

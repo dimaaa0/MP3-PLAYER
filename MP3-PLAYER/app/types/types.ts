@@ -57,7 +57,7 @@ export interface HeaderProps {
     deleteSearch: (value: string) => void;
 }
 
-interface PlayingTrack {
+export interface PlayingTrack {
     name: string;
     artist: string;
     imageUrl?: string;

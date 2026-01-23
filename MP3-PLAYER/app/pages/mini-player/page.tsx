@@ -27,19 +27,17 @@ export default function MiniPlayer() {
         );
     }
 
-    const imageSrc = track.imageUrl || "/placeholder-music.png";
 
     return (
         <div className="h-screen w-screen bg-[#121212] text-white flex flex-col p-8 overflow-hidden select-none relative">
             <div className="absolute inset-0 opacity-20 pointer-events-none transform scale-150">
-                <img src={imageSrc} className="w-full flex items-center content-center h-full object-cover blur-[100px]" alt="" />
-
+                <img src={track.imageUrl} className="opacity-9 w-full flex items-center content-center h-full object-cover blur-[100px]" alt="" />
             </div>
 
             <div className="relative z-10 flex flex-col h-full">
                 <div className="aspect-square w-full mb-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-xl overflow-hidden border border-white/5">
 
-                    <img src={imageSrc} alt="Cover" className="w-full h-full object-cover" />
+                    <img src={track.imageUrl} alt="Cover" className=" w-full h-full object-cover" />
 
                 </div>
 

@@ -11,7 +11,7 @@ import { useYoutubePlayer } from '../hooks/useYoutubePlayer';
 const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const [favorites, setFavorites] = useState<favoritesType[]>([]);
 
-    const { activeVideoId, currentTrack, isLoadingVideo, playTrack, stopPlayback } = useYoutubePlayer();
+    const { activeVideoId, currentTrack, isLoadingVideo, playTrack, stopPlayback } = useYoutubePlayer(); // МУЗЫКАК КОТОРАЯ ИГРАЕТ СЕЙЧАС
 
     const { tracks, loading } = useTopTracks();
     const selectByGenre = useSelectByGenre(recentCategory || 'All');
@@ -92,9 +92,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         }
     };
 
-    // console.log(currentTrack.name); 
-    //проблема с нахождением этого currentTrack
-    
+
 
     const TrackRow = ({
         name,
@@ -109,7 +107,9 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
             <div
                 onClick={() => {
                     {
-                        isCurrentActive ? stopPlayback() : playTrack(name, artist);
+                        isCurrentActive ? stopPlayback() : playTrack(name, artist, imageUrl);
+                        handlePopOut();
+
                     }
                 }}
                 className={`cursor-pointer card rounded-lg flex justify-between w-full p-3.5 transition-colors ${isCurrentActive ? 'bg-[#7776766d] ring-1 ring-blue-500' : 'bg-[#7776763b] hover:bg-[#7776765d]'
@@ -128,7 +128,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                     ) : isCurrentActive ? (
                                         <Pause className="w-6 h-6 text-white fill-white z-10" />
                                     ) : (
-                                        <Play onClick={() => { playTrack(name, artist) }} className="w-6 h-6 text-white fill-white" />
+                                        <Play onClick={() => { playTrack(name, artist, imageUrl) }} className="w-6 h-6 text-white fill-white" />
                                     )}
                                 </div>
                             </>
@@ -184,6 +184,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
         return () => channel.close();
     }, [currentTrack, isLoadingVideo]);
+
+
 
     return (
         <div className='flex flex-col gap-3 pb-24'>
@@ -253,14 +255,16 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                         </div>
                     )}
                 </div>
-            )}
+            )
+
+            
 
             <button onClick={handlePopOut} className="btn-mini">
                 Вытащить плеер
             </button>
 
             {activeVideoId && (
-                <div className="hidden pointer-events-none opacity-0">
+                <div className="hidden pointer-events-none opacity-100">
                     <iframe
                         src={`https://www.youtube.com/embed/${activeVideoId}?autoplay=1`}
                         allow="autoplay"
