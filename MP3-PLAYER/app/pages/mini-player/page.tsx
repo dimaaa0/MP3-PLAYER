@@ -1,23 +1,34 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Loader2 } from 'lucide-react';
+import { useYoutubePlayer } from '../../hooks/useYoutubePlayer';
 
 export default function MiniPlayer() {
     const [track, setTrack] = useState<any>(null);
+    const [previousTrack, setPreviousTrack] = useState<any>(null);
+    const { playTrack, stopPlayback } = useYoutubePlayer();
 
     useEffect(() => {
         const channel = new BroadcastChannel('music_player_channel');
 
+        // 1. Слушаем ответы
         channel.onmessage = (event) => {
             if (event.data.type === 'TRACK_UPDATE') {
                 setTrack(event.data.track);
+                // setPreviousTrack(track); // Будь осторожен, здесь track может быть старым из замыкания
             }
         };
+
+        // 2. АКТИВНЫЙ ШАГ: Спрашиваем основную вкладку: "Что сейчас играет?"
+        channel.postMessage({ type: 'REQUEST_CURRENT_TRACK' });
 
         document.title = "Music Player";
 
         return () => channel.close();
     }, []);
+    //^ КОРОЧЕ НАДО СДЕЛАТЬ ТАК ЧТОБЫ ДАЖЕ ЕСЛИ НЕ БУДЕТ ТРЕКА, ТО ОНО НЕ ПИСАЛО "Ожидание выбора трека..." А ПОКАЗЫВАЛО ПРЕДЫДУЩИЙ ТРЕК!!!!!!!!
+    //^ А ЩАС КАКАЯ-ТО ХУЙНЯ ЧТО ВООБЩЕ НЕ ПОКАЗЫВАЕТ НИЧЕГО ИЗ-ЗА ВРОДЕ БЫ previousTrack, СКОРЕЕ ВСЕГО ИЗ-ЗА 26 СТРОКИ 
+    console.log(previousTrack);
 
     if (!track) {
         return (
@@ -27,11 +38,10 @@ export default function MiniPlayer() {
         );
     }
 
-
     return (
-        <div className="h-screen w-screen bg-[#121212] text-white flex flex-col p-8 overflow-hidden select-none relative">
+        <div className="h-screen w-screen bg-[#121212] text-white flex flex-col p-8 overflow-hidden relative select-none">
             <div className="absolute inset-0 opacity-20 pointer-events-none transform scale-150">
-                <img src={track.imageUrl} className="opacity-9 w-full flex items-center content-center h-full object-cover blur-[100px]" alt="" />
+                <img src={track.imageUrl} className="w-full h-full object-cover blur-3xl" alt="" />
             </div>
 
             <div className="relative z-10 flex flex-col h-full">
@@ -59,7 +69,7 @@ export default function MiniPlayer() {
                         {track.isLoadingVideo ? (
                             <Loader2 className="w-8 h-8 animate-spin" />
                         ) : (
-                            <Pause className="cursor-pointer w-8 h-8 fill-current ml-0" />
+                            <Pause className="cursor-pointer w-8 h-8 fill-current ml-0" onClick={stopPlayback} />
                         )}
                     </button>
 
@@ -71,3 +81,4 @@ export default function MiniPlayer() {
         </div>
     );
 }
+

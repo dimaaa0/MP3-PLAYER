@@ -33,6 +33,8 @@ export const useYoutubePlayer = () => {
     const stopPlayback = () => {
         setActiveVideoId(null);
         setCurrentTrack(null);
+        console.log('the track is stopped');
+        
     };
 
     return {
