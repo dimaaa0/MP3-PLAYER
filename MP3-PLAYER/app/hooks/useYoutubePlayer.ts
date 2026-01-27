@@ -9,7 +9,7 @@ export const useYoutubePlayer = () => {
 
     const playTrack = async (trackName: string, artistName: string, imageUrl: string) => {
         if (currentTrack?.name === trackName && currentTrack?.artist === artistName) return;
-        
+
         setIsLoadingVideo(true);
         try {
             const response = await fetch(
@@ -19,7 +19,7 @@ export const useYoutubePlayer = () => {
 
             if (data.videoId) {
                 setActiveVideoId(data.videoId);
-                setCurrentTrack({ name: trackName, artist: artistName, imageUrl});
+                setCurrentTrack({ name: trackName, artist: artistName, imageUrl });
             } else {
                 console.error("Video ID not found");
             }
@@ -34,7 +34,6 @@ export const useYoutubePlayer = () => {
         setActiveVideoId(null);
         setCurrentTrack(null);
         console.log('the track is stopped');
-        
     };
 
     return {

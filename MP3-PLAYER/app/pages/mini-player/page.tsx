@@ -41,7 +41,7 @@ export default function MiniPlayer() {
     return (
         <div className="h-screen w-screen bg-[#121212] text-white flex flex-col p-8 overflow-hidden relative select-none">
             <div className="absolute inset-0 opacity-20 pointer-events-none transform scale-150">
-                <img src={track.imageUrl} className="w-full h-full object-cover blur-3xl" alt="" />
+                {track.imageUrl ? <img src={track.imageUrl} className="w-full h-full object-cover blur-3xl" alt="" /> : null}
             </div>
 
             <div className="relative z-10 flex flex-col h-full">
