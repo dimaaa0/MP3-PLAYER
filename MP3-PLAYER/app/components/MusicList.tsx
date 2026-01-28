@@ -35,6 +35,25 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         return formatDuration(num);
     };
 
+    {/*
+
+    const formatDuration = (duration: string | number): string => {
+    const num = typeof duration === 'string' ? parseInt(duration) : duration;
+    if (!num || isNaN(num)) return '--:--';
+    
+    // Если число больше разумного времени в секундах (например, 10000 сек = 2.7 часа),
+    // считаем что это миллисекунды
+    const seconds = num > 10000 ? Math.floor(num / 1000) : num;
+    
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  };
+
+*/
+        //^ БОЛЕЕ ЧОТКАЯ ПРОВЕРКА ЯВЛЯЕТСЯ ЛИ ДАННОЕ ЧИСЛО МИЛЛИСЕКУНДАМИ ИЛИ СЕКУНДАМИ
+    }
+
     const handleFavorite = (trackName: string, artistName: string, imageUrl: string, duration: string) => {
         setFavorites((prev) => {
             const isExist = prev.some(item => item.name === trackName && item.artist === artistName);
@@ -83,7 +102,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
     const handlePopOut = () => {
         const width = 400;
-        const height = 500;
+        const height = 540;
         const left = window.screen.width / 2 - width / 2;
         const top = window.screen.height / 2 - height / 2;
 

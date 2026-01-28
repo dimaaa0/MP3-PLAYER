@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Loader2 } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Loader2, Star, HeartOff } from 'lucide-react';
 import { useYoutubePlayer } from '../../hooks/useYoutubePlayer';
 
 export default function MiniPlayer() {
@@ -15,19 +15,15 @@ export default function MiniPlayer() {
         channel.onmessage = (event) => {
             if (event.data.type === 'TRACK_UPDATE') {
                 setTrack(event.data.track);
-                // setPreviousTrack(track); // Будь осторожен, здесь track может быть старым из замыкания
             }
         };
 
-        // 2. АКТИВНЫЙ ШАГ: Спрашиваем основную вкладку: "Что сейчас играет?"
         channel.postMessage({ type: 'REQUEST_CURRENT_TRACK' });
 
         document.title = "Music Player";
 
         return () => channel.close();
     }, []);
-    //^ КОРОЧЕ НАДО СДЕЛАТЬ ТАК ЧТОБЫ ДАЖЕ ЕСЛИ НЕ БУДЕТ ТРЕКА, ТО ОНО НЕ ПИСАЛО "Ожидание выбора трека..." А ПОКАЗЫВАЛО ПРЕДЫДУЩИЙ ТРЕК!!!!!!!!
-    //^ А ЩАС КАКАЯ-ТО ХУЙНЯ ЧТО ВООБЩЕ НЕ ПОКАЗЫВАЕТ НИЧЕГО ИЗ-ЗА ВРОДЕ БЫ previousTrack, СКОРЕЕ ВСЕГО ИЗ-ЗА 26 СТРОКИ 
     console.log(previousTrack);
 
     if (!track) {
@@ -37,6 +33,64 @@ export default function MiniPlayer() {
             </div>
         );
     }
+
+    const [timer, setTimer] = useState<NodeJS.Timeout | null>(0);
+
+    const playTimer = (duration: number) => {
+        for (let i = 0; i <= duration; i++) {
+            setTimeout(() => {
+                setTimer((prev) => prev + 1);
+            }, 1000);
+        }
+
+    }
+
+    {/*
+const [timer, setTimer] = useState<number>(0);
+const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+const playTimer = (duration: number) => {
+    // Очищаем предыдущий таймер если есть
+    if (timerRef.current) {
+        clearInterval(timerRef.current);
+    }
+    
+    setTimer(0); // Сбрасываем счётчик
+    
+    timerRef.current = setInterval(() => {
+        setTimer((prev) => {
+            if (prev >= duration) {
+                if (timerRef.current) {
+                    clearInterval(timerRef.current);
+                }
+                return duration;
+            }
+            return prev + 1;
+        });
+    }, 1000);
+};
+
+const stopTimer = () => {
+    if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+    }
+};
+
+const resetTimer = () => {
+    stopTimer();
+    setTimer(0);
+};
+
+// Не забудь очистить при размонтировании
+useEffect(() => {
+    return () => {
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+        }
+    };
+}, []);
+    */}
 
     return (
         <div className="h-screen w-screen bg-[#121212] text-white flex flex-col p-8 overflow-hidden relative select-none">
@@ -51,7 +105,7 @@ export default function MiniPlayer() {
 
                 </div>
 
-                <div className="space-y-1 mb-6">
+                <div className="space-y-0.5 mb-4">
                     <h1 className="text-xl font-bold truncate tracking-tight text-blue-50">
                         {track.name}
                     </h1>
@@ -60,22 +114,38 @@ export default function MiniPlayer() {
                     </p>
                 </div>
 
-                <div className="mt-auto flex justify-between items-center pb-2">
-                    <button className="p-2 hover:bg-white/5 rounded-full transition-colors group">
-                        <SkipBack className="cursor-pointer w-6 h-6 group-active:scale-90 transition-transform" />
+                <div className="mt-auto flex w-full justify-center items-center pb-2"> {/* КНОПКИ В MP3 */}
+                    <button className="p-2  absolute left-0 hover:bg-white/5 cursor-pointer rounded-full transition-colors group">
+                        <HeartOff className='w-7 h-7' />
                     </button>
+                    <div className='flex items-center justify-between w-[200px]'>
+                        <button className="p-2 hover:bg-white/5 cursor-pointer rounded-full transition-colors group">
+                            <SkipBack className="cursor-pointer duration-300 w-7 h-7 group-active:scale-90 transition-transform" />
+                        </button>
 
-                    <button className="w-16 h-16 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/10">
-                        {track.isLoadingVideo ? (
-                            <Loader2 className="w-8 h-8 animate-spin" />
-                        ) : (
-                            <Pause className="cursor-pointer w-8 h-8 fill-current ml-0" onClick={stopPlayback} />
-                        )}
-                    </button>
+                        <button className="w-16 h-16 cursor-pointer duration-300 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/10">
+                            {track.isLoadingVideo ? (
+                                <Loader2 className="w-8 h-8  duration-300 animate-spin" />
+                            ) : (
+                                <Pause className=" w-8 h-8 fill-current  duration-300 ml-0" onClick={stopPlayback} />
+                            )}
+                        </button>
 
-                    <button className="p-2 hover:bg-white/5 rounded-full transition-colors group">
-                        <SkipForward className="cursor-pointer w-6 h-6 group-active:scale-90 transition-transform" />
+                        <button className="p-2 hover:bg-white/5 cursor-pointer rounded-full transition-colors group">
+                            <SkipForward className=" duration-300 w-7 h-7 group-active:scale-90 transition-transform" />
+                        </button>
+                    </div>
+                    <button className="p-2 absolute right-0 hover:bg-white/5 cursor-pointer rounded-full transition-colors group">
+                        <Star className='w-7 h-7 ' />
                     </button>
+                </div>
+
+                <div className='w-full h-2 bg-gray-700 rounded-full mt-4'> {/* Добавленная строка прогресса воспроизведения */}
+                    <div className='h-full bg-white rounded-full w-[5%]'></div>
+                </div>
+                <div className='flex justify-between mt-1'> {/* Время воспроизведения справа */}
+                    <h3>00:02</h3>
+                    <h3>02:25</h3>
                 </div>
             </div>
         </div>
