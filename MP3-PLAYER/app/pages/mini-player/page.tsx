@@ -1,34 +1,38 @@
 "use client";
-import { useEffect, useState } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Loader2 } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { Play, Pause, SkipBack, SkipForward, Loader2, Star, HeartOff } from 'lucide-react';
 import { useYoutubePlayer } from '../../hooks/useYoutubePlayer';
 
 export default function MiniPlayer() {
     const [track, setTrack] = useState<any>(null);
     const [previousTrack, setPreviousTrack] = useState<any>(null);
     const { playTrack, stopPlayback } = useYoutubePlayer();
+    const channelRef = useRef<BroadcastChannel | null>(null);
+
+
 
     useEffect(() => {
         const channel = new BroadcastChannel('music_player_channel');
+        channelRef.current = channel;
 
         // 1. Слушаем ответы
         channel.onmessage = (event) => {
             if (event.data.type === 'TRACK_UPDATE') {
-                setTrack(event.data.track);
-                // setPreviousTrack(track); // Будь осторожен, здесь track может быть старым из замыкания
+                if (event.data.track) {
+                    setTrack(event.data.track);
+                    setPreviousTrack(event.data.track);
+                } else {
+                    setTrack(previousTrack);
+                }
             }
         };
 
-        // 2. АКТИВНЫЙ ШАГ: Спрашиваем основную вкладку: "Что сейчас играет?"
         channel.postMessage({ type: 'REQUEST_CURRENT_TRACK' });
 
         document.title = "Music Player";
 
         return () => channel.close();
     }, []);
-    //^ КОРОЧЕ НАДО СДЕЛАТЬ ТАК ЧТОБЫ ДАЖЕ ЕСЛИ НЕ БУДЕТ ТРЕКА, ТО ОНО НЕ ПИСАЛО "Ожидание выбора трека..." А ПОКАЗЫВАЛО ПРЕДЫДУЩИЙ ТРЕК!!!!!!!!
-    //^ А ЩАС КАКАЯ-ТО ХУЙНЯ ЧТО ВООБЩЕ НЕ ПОКАЗЫВАЕТ НИЧЕГО ИЗ-ЗА ВРОДЕ БЫ previousTrack, СКОРЕЕ ВСЕГО ИЗ-ЗА 26 СТРОКИ 
-    console.log(previousTrack);
 
     if (!track) {
         return (
@@ -38,8 +42,15 @@ export default function MiniPlayer() {
         );
     }
 
+    const handleConsoleLog = () => {
+        console.log('paused');
+    }
+
+
+
     return (
         <div className="h-screen w-screen bg-[#121212] text-white flex flex-col p-8 overflow-hidden relative select-none">
+
             <div className="absolute inset-0 opacity-20 pointer-events-none transform scale-150">
                 {track.imageUrl ? <img src={track.imageUrl} className="w-full h-full object-cover blur-3xl" alt="" /> : null}
             </div>
@@ -58,27 +69,48 @@ export default function MiniPlayer() {
                     <p className="text-blue-400/80 text-sm font-medium truncate uppercase tracking-wider">
                         {track.artist}
                     </p>
+
                 </div>
 
-                <div className="mt-auto flex justify-between items-center pb-2">
-                    <button className="p-2 hover:bg-white/5 rounded-full transition-colors group">
-                        <SkipBack className="cursor-pointer w-6 h-6 group-active:scale-90 transition-transform" />
+                <div className="mt-auto flex w-full justify-center items-center pb-2"> {/* КНОПКИ В MP3 */}
+                    <button className="p-2  absolute left-0 hover:bg-white/5 cursor-pointer rounded-full transition-colors group">
+                        <HeartOff className='w-7 h-7' />
                     </button>
+                    <div className='flex items-center justify-between w-[200px]'>
+                        <button className="p-2 hover:bg-white/5 cursor-pointer rounded-full transition-colors group">
+                            <SkipBack className="cursor-pointer duration-300 w-7 h-7 group-active:scale-90 transition-transform" />
+                        </button>
 
-                    <button className="w-16 h-16 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/10">
-                        {track.isLoadingVideo ? (
-                            <Loader2 className="w-8 h-8 animate-spin" />
-                        ) : (
-                            <Pause className="cursor-pointer w-8 h-8 fill-current ml-0" onClick={stopPlayback} />
-                        )}
-                    </button>
+                        <button className="w-16 h-16 cursor-pointer duration-300 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/10">
+                            {track.isLoadingVideo ? (
+                                <Loader2 className="w-8 h-8  duration-300 animate-spin" />
+                            ) : (
+                                <Pause className=" w-8 h-8 fill-current  duration-300 ml-0"
+                                    onClick={() => { channelRef.current?.postMessage({ type: 'STOP_TRACK' }); handleConsoleLog(); }}
+                                />
+                            )}
+                        </button>
 
-                    <button className="p-2 hover:bg-white/5 rounded-full transition-colors group">
-                        <SkipForward className="cursor-pointer w-6 h-6 group-active:scale-90 transition-transform" />
+                        <button className="p-2 hover:bg-white/5 cursor-pointer rounded-full transition-colors group">
+                            <SkipForward className=" duration-300 w-7 h-7 group-active:scale-90 transition-transform" />
+                        </button>
+                    </div>
+                    <button className="p-2 absolute right-0 hover:bg-white/5 cursor-pointer rounded-full transition-colors group">
+                        <Star className='w-7 h-7 ' />
                     </button>
+                </div>
+
+                <div className='w-full h-2 bg-gray-700 rounded-full mt-4'> {/* строка прогресса воспроизведения */}
+                    <div className='h-full bg-white rounded-full w-[5%]'></div>
+                </div>
+                <div className='flex justify-between mt-1'> {/* Время воспроизведения справа */}
+                    <h3>00:02</h3>
+                    <h3>02:25</h3>
                 </div>
             </div>
         </div>
     );
 }
+
+
 

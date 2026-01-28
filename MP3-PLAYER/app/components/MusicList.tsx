@@ -75,6 +75,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         channel.onmessage = (event) => {
             if (event.data.type === 'REQUEST_CURRENT_TRACK') {
                 broadcastTrackUpdate(channel);
+            } else if (event.data.type === 'STOP_TRACK') {
+                stopPlayback();
             }
         };
 
