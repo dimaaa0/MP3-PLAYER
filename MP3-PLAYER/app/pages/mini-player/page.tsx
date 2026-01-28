@@ -24,6 +24,7 @@ export default function MiniPlayer() {
                 } else {
                     setTrack(previousTrack);
                 }
+
             }
         };
 
@@ -42,10 +43,52 @@ export default function MiniPlayer() {
         );
     }
 
-    const handleConsoleLog = () => {
-        console.log('paused');
-    }
+    {/*
+const [timer, setTimer] = useState<number>(0);
+const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+const playTimer = (duration: number) => {
+    // Очищаем предыдущий таймер если есть
+    if (timerRef.current) {
+        clearInterval(timerRef.current);
+    }
+    
+    setTimer(0); // Сбрасываем счётчик
+    
+    timerRef.current = setInterval(() => {
+        setTimer((prev) => {
+            if (prev >= duration) {
+                if (timerRef.current) {
+                    clearInterval(timerRef.current);
+                }
+                return duration;
+            }
+            return prev + 1;
+        });
+    }, 1000);
+};
+
+const stopTimer = () => {
+    if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+    }
+};
+
+const resetTimer = () => {
+    stopTimer();
+    setTimer(0);
+};
+
+// Не забудь очистить при размонтировании
+useEffect(() => {
+    return () => {
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+        }
+    };
+}, []);
+    */}
 
 
     return (
@@ -62,7 +105,7 @@ export default function MiniPlayer() {
 
                 </div>
 
-                <div className="space-y-1 mb-6">
+                <div className="space-y-0.5 mb-4">
                     <h1 className="text-xl font-bold truncate tracking-tight text-blue-50">
                         {track.name}
                     </h1>
@@ -86,8 +129,9 @@ export default function MiniPlayer() {
                                 <Loader2 className="w-8 h-8  duration-300 animate-spin" />
                             ) : (
                                 <Pause className=" w-8 h-8 fill-current  duration-300 ml-0"
-                                    onClick={() => { channelRef.current?.postMessage({ type: 'STOP_TRACK' }); handleConsoleLog(); }}
+                                    onClick={() => { channelRef.current?.postMessage({ type: 'STOP_TRACK' }); }}
                                 />
+
                             )}
                         </button>
 
@@ -101,6 +145,7 @@ export default function MiniPlayer() {
                 </div>
 
                 <div className='w-full h-2 bg-gray-700 rounded-full mt-4'> {/* строка прогресса воспроизведения */}
+
                     <div className='h-full bg-white rounded-full w-[5%]'></div>
                 </div>
                 <div className='flex justify-between mt-1'> {/* Время воспроизведения справа */}
