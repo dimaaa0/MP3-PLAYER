@@ -8,6 +8,16 @@ export default function MiniPlayer() {
     const [previousTrack, setPreviousTrack] = useState<any>(null);
     const { playTrack, stopPlayback } = useYoutubePlayer();
     const channelRef = useRef<BroadcastChannel | null>(null);
+    const [active, setActive] = useState(true);
+
+    const formatDuration = (duration: string | number): string => {
+        const num = typeof duration === 'string' ? parseInt(duration) : duration;
+        if (!num || isNaN(num)) return '--:--';
+        const seconds = num > 10000 ? Math.floor(num / 1000) : num;
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    };
 
 
 
@@ -18,13 +28,13 @@ export default function MiniPlayer() {
         // 1. Слушаем ответы
         channel.onmessage = (event) => {
             if (event.data.type === 'TRACK_UPDATE') {
+                console.log('TRACK_UPDATE received:', event.data.track); // Для отладки
                 if (event.data.track) {
                     setTrack(event.data.track);
                     setPreviousTrack(event.data.track);
                 } else {
                     setTrack(previousTrack);
                 }
-
             }
         };
 
@@ -80,7 +90,6 @@ const resetTimer = () => {
     setTimer(0);
 };
 
-// Не забудь очистить при размонтировании
 useEffect(() => {
     return () => {
         if (timerRef.current) {
@@ -88,7 +97,12 @@ useEffect(() => {
         }
     };
 }, []);
+
     */}
+
+    const logTheData = (title: string, artist: string, imageUrl: string, duration: number) => {
+        console.log('Star button clicked! Track Info:', { title, artist, imageUrl, duration });
+    }
 
 
     return (
@@ -99,17 +113,25 @@ useEffect(() => {
             </div>
 
             <div className="relative z-10 flex flex-col h-full">
-                <div className="aspect-square w-full mb-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-xl overflow-hidden border border-white/5">
-
-                    <img src={track.imageUrl} alt="Cover" className=" w-full h-full object-cover" />
-
+                <div className="w-full aspect-square rounded-lg overflow-hidden mb-4">
+                    {track.imageUrl ? (
+                        <img
+                            src={track.imageUrl}
+                            alt="Track cover"
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-zinc-900 flex items-center justify-center">
+                            <span className="text-white text-lg font-medium">NO COVER</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="space-y-0.5 mb-4">
                     <h1 className="text-xl font-bold truncate tracking-tight text-blue-50">
                         {track.name}
                     </h1>
-                    <p className="text-blue-400/80 text-sm font-medium truncate uppercase tracking-wider">
+                    <p className="text-white-100 text-sm font-medium truncate uppercase tracking-wider">
                         {track.artist}
                     </p>
 
@@ -119,43 +141,68 @@ useEffect(() => {
                     <button className="p-2  absolute left-0 hover:bg-white/5 cursor-pointer rounded-full transition-colors group">
                         <HeartOff className='w-7 h-7' />
                     </button>
-                    <div className='flex items-center justify-between w-[200px]'>
+                    <div className='flex items-center justify-between w-50'>
                         <button className="p-2 hover:bg-white/5 cursor-pointer rounded-full transition-colors group">
                             <SkipBack className="cursor-pointer duration-300 w-7 h-7 group-active:scale-90 transition-transform" />
                         </button>
 
-                        <button className="w-16 h-16 cursor-pointer duration-300 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/10">
-                            {track.isLoadingVideo ? (
-                                <Loader2 className="w-8 h-8  duration-300 animate-spin" />
-                            ) : (
-                                <Pause className=" w-8 h-8 fill-current  duration-300 ml-0"
-                                    onClick={() => { channelRef.current?.postMessage({ type: 'STOP_TRACK' }); }}
-                                />
+                        {track.isPlaying ? (
+                            <button
+                                title="Play"
+                                aria-label="Play"
+                                className="w-16 h-16 cursor-pointer rounded-full flex items-center justify-center transform transition-transform duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-black/30 bg-grey-400 text-white ring-1 ring-transparent"
+                                onClick={() => { channelRef.current?.postMessage({ type: 'PLAY_TRACK' }); }}
+                            >
+                                {track.isLoadingVideo ? (
+                                    <Loader2 className="w-8 h-8 duration-300 animate-spin" />
+                                ) : (
+                                    <Play className="w-8 h-8" />
+                                )}
+                            </button>
+                        ) : (
+                            <button
+                                title="Pause"
+                                aria-label="Pause"
+                                className="w-16 h-16 rounded-full cursor-pointer flex items-center justify-center transform transition-transform duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-black/40 bg-grey-400 text-white ring-1 ring-transparent"
+                                onClick={() => { channelRef.current?.postMessage({ type: 'STOP_TRACK' }); }}
+                            >
+                                {track.isLoadingVideo ? (
+                                    <Loader2 className="w-8 h-8 duration-300 animate-spin" />
+                                ) : (
+                                    <Pause className="w-8 h-8" />
+                                )}
+                            </button>
 
-                            )}
-                        </button>
+                        )}
+
 
                         <button className="p-2 hover:bg-white/5 cursor-pointer rounded-full transition-colors group">
                             <SkipForward className=" duration-300 w-7 h-7 group-active:scale-90 transition-transform" />
                         </button>
                     </div>
                     <button className="p-2 absolute right-0 hover:bg-white/5 cursor-pointer rounded-full transition-colors group">
-                        <Star className='w-7 h-7 ' />
+                        <Star className='w-7 h-7 '
+                            onClick={() => logTheData(
+                                track.name,
+                                track.artist,
+                                track.imageUrl,
+                                track.duration
+                            )}
+                        />
                     </button>
                 </div>
-
-                <div className='w-full h-2 bg-gray-700 rounded-full mt-4'> {/* строка прогресса воспроизведения */}
-
-                    <div className='h-full bg-white rounded-full w-[5%]'></div>
-                </div>
-                <div className='flex justify-between mt-1'> {/* Время воспроизведения справа */}
-                    <h3>00:02</h3>
-                    <h3>02:25</h3>
-                </div>
+                {track.duration != null || 0 && (
+                    <>
+                        <div className='w-full h-2 bg-gray-700 rounded-full mt-4'>
+                            <div className='h-full bg-white rounded-full w-[5%]'></div>
+                        </div>
+                        <div className='flex justify-between mt-1'>
+                            <h3>00:02</h3>
+                            <h3>{formatDuration(track.duration)}</h3>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );
 }
-
-
-

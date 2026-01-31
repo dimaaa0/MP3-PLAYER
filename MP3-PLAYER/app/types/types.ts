@@ -60,5 +60,6 @@ export interface HeaderProps {
 export interface PlayingTrack {
     name: string;
     artist: string;
+    duration: string;
     imageUrl?: string;
 }

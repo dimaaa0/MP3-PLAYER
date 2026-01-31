@@ -23,36 +23,12 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const formatDuration = (duration: string | number): string => {
         const num = typeof duration === 'string' ? parseInt(duration) : duration;
         if (!num || isNaN(num)) return '--:--';
-        const minutes = Math.floor(num / 60);
-        const seconds = num % 60;
-        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        const seconds = num > 10000 ? Math.floor(num / 1000) : num;
+
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
-
-    const formatDurationForMilliseconds = (duration: string | number): string => {
-        let num = typeof duration === 'string' ? parseInt(duration) : duration;
-        if (!num || isNaN(num)) return '--:--';
-        if (num > 10000) num = Math.floor(num / 1000);
-        return formatDuration(num);
-    };
-
-    {/*
-
-    const formatDuration = (duration: string | number): string => {
-    const num = typeof duration === 'string' ? parseInt(duration) : duration;
-    if (!num || isNaN(num)) return '--:--';
-    
-    // Если число больше разумного времени в секундах (например, 10000 сек = 2.7 часа),
-    // считаем что это миллисекунды
-    const seconds = num > 10000 ? Math.floor(num / 1000) : num;
-    
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
-  };
-
-*/
-        //^ БОЛЕЕ ЧОТКАЯ ПРОВЕРКА ЯВЛЯЕТСЯ ЛИ ДАННОЕ ЧИСЛО МИЛЛИСЕКУНДАМИ ИЛИ СЕКУНДАМИ
-    }
 
     const handleFavorite = (trackName: string, artistName: string, imageUrl: string, duration: string) => {
         setFavorites((prev) => {
@@ -74,13 +50,15 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
     const broadcastTrackUpdate = useCallback((channel: BroadcastChannel) => {
         if (currentTrack) {
+            console.log('Broadcasting TRACK_UPDATE (from broadcastTrackUpdate):', { currentTrack, isLoadingVideo });
             channel.postMessage({
                 type: 'TRACK_UPDATE',
                 track: {
                     name: currentTrack.name,
                     artist: currentTrack.artist,
+                    duration: currentTrack.duration,
                     ...(currentTrack.imageUrl && { imageUrl: currentTrack.imageUrl }),
-                    isLoadingVideo: isLoadingVideo
+                    isLoadingVideo: isLoadingVideo,
                 }
             });
         }
@@ -96,6 +74,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                 broadcastTrackUpdate(channel);
             } else if (event.data.type === 'STOP_TRACK') {
                 stopPlayback();
+            } else if (event.data.type === 'PLAY_TRACK') {
+                playTrack();
             }
         };
 
@@ -193,11 +173,13 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         const channel = new BroadcastChannel('music_player_channel');
 
         if (currentTrack) {
+            console.log('Broadcasting TRACK_UPDATE (from effect):', { currentTrack, isLoadingVideo });
             channel.postMessage({
                 type: 'TRACK_UPDATE',
                 track: {
                     name: currentTrack.name,
                     artist: currentTrack.artist,
+                    duration: currentTrack.duration,
                     ...(currentTrack.imageUrl && { imageUrl: currentTrack.imageUrl }),
                     isLoadingVideo: isLoadingVideo
                 }
@@ -268,7 +250,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                     name={track.name}
                                     artist={typeof track.artist === 'string' ? track.artist : track.artist.name}
                                     imageUrl={genreData.imageUrl[index]}
-                                    duration={formatDurationForMilliseconds(track.duration)}
+                                    duration={formatDuration(track.duration)}
                                     isLoading={genreData.isLoading}
                                 />
                             ))}

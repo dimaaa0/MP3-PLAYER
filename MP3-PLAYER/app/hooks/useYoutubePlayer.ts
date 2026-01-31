@@ -19,7 +19,7 @@ export const useYoutubePlayer = () => {
 
             if (data.videoId) {
                 setActiveVideoId(data.videoId);
-                setCurrentTrack({ name: trackName, artist: artistName, imageUrl });
+                setCurrentTrack({ name: trackName, artist: artistName, imageUrl, duration: data.duration });
             } else {
                 console.error("Video ID not found");
             }
