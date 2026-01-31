@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "@reduxjs/toolkit": "^2.11.2",
     "@stackframe/stack": "^2.8.56",
     "lucide-react": "^0.562.0",
