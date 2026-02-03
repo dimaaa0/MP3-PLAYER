@@ -50,7 +50,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
     const broadcastTrackUpdate = useCallback((channel: BroadcastChannel) => {
         if (currentTrack) {
-            console.log('Broadcasting TRACK_UPDATE (from broadcastTrackUpdate):', { currentTrack, isLoadingVideo });
+            console.log('Broadcasting TRACK_UPDATE (from broadcastTrackUpdate):', { currentTrack, isLoadingVideo, activeVideoId });
             channel.postMessage({
                 type: 'TRACK_UPDATE',
                 track: {
@@ -59,10 +59,12 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                     duration: currentTrack.duration,
                     ...(currentTrack.imageUrl && { imageUrl: currentTrack.imageUrl }),
                     isLoadingVideo: isLoadingVideo,
+                    isPlaying: !!activeVideoId,
+                    activeVideoId: activeVideoId || null
                 }
             });
         }
-    }, [currentTrack, isLoadingVideo]);
+    }, [currentTrack, isLoadingVideo, activeVideoId]);
 
     useEffect(() => {
         const channel = new BroadcastChannel('music_player_channel');
@@ -75,7 +77,14 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
             } else if (event.data.type === 'STOP_TRACK') {
                 stopPlayback();
             } else if (event.data.type === 'PLAY_TRACK') {
-                playTrack();
+                const t = event.data.track;
+                if (t?.name && t?.artist) {
+                    // Play track provided by other window
+                    playTrack(t.name, t.artist, t.imageUrl);
+                } else {
+                    // Fallback: request current track info
+                    broadcastTrackUpdate(channel);
+                }
             }
         };
 
@@ -173,7 +182,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         const channel = new BroadcastChannel('music_player_channel');
 
         if (currentTrack) {
-            console.log('Broadcasting TRACK_UPDATE (from effect):', { currentTrack, isLoadingVideo });
+            console.log('Broadcasting TRACK_UPDATE (from effect):', { currentTrack, isLoadingVideo, activeVideoId });
             channel.postMessage({
                 type: 'TRACK_UPDATE',
                 track: {
@@ -181,13 +190,15 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                     artist: currentTrack.artist,
                     duration: currentTrack.duration,
                     ...(currentTrack.imageUrl && { imageUrl: currentTrack.imageUrl }),
-                    isLoadingVideo: isLoadingVideo
+                    isLoadingVideo: isLoadingVideo,
+                    isPlaying: !!activeVideoId,
+                    activeVideoId: activeVideoId || null
                 }
             });
         }
 
         return () => channel.close();
-    }, [currentTrack, isLoadingVideo]);
+    }, [currentTrack, isLoadingVideo, activeVideoId]);
 
     return (
         <div className='flex flex-col gap-3 pb-24'>
