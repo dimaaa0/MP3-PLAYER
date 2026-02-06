@@ -9,17 +9,20 @@ export default function MiniPlayer() {
     const { playTrack, stopPlayback } = useYoutubePlayer();
     const channelRef = useRef<BroadcastChannel | null>(null);
     const [active, setActive] = useState(true);
+    const [isFavorited, setIsFavorited] = useState(false);
+    const [favorites, setFavorites] = useState<any[]>([]);
 
     const formatDuration = (duration: string | number): string => {
         const num = typeof duration === 'string' ? parseInt(duration) : duration;
-        if (!num || isNaN(num)) return '--:--';
+        if (!num || isNaN(num))
+            return '--:--';
+
         const seconds = num > 10000 ? Math.floor(num / 1000) : num;
+
         const minutes = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
-
-
 
     useEffect(() => {
         const channel = new BroadcastChannel('music_player_channel');
@@ -32,8 +35,29 @@ export default function MiniPlayer() {
                 if (event.data.track) {
                     setTrack(event.data.track);
                     setPreviousTrack(event.data.track);
+                    // Проверяем favorited при смене трека
+                    const isFav = favorites.some((fav: any) =>
+                        fav.name === event.data.track.name && fav.artist === event.data.track.artist
+                    );
+                    setIsFavorited(isFav);
                 } else {
                     setTrack(previousTrack);
+                }
+            } else if (event.data.type === 'PLAY_TRACK') {
+                const t = event.data.track;
+                if (t?.name && t?.artist) {
+                    playTrack(t.name, t.artist, t.imageUrl);
+                }
+                playTrack(t.name, t.artist, t.imageUrl);
+            } else if (event.data.type === 'FAVORITES_UPDATE') {
+                console.log('FAVORITES_UPDATE received:', event.data.favorites);
+                setFavorites(event.data.favorites);
+                // Проверяем, favorited ли текущий трек
+                if (track) {
+                    const isFav = event.data.favorites.some((fav: any) =>
+                        fav.name === track.name && fav.artist === track.artist
+                    );
+                    setIsFavorited(isFav);
                 }
             }
         };
@@ -43,7 +67,7 @@ export default function MiniPlayer() {
         document.title = "Music Player";
 
         return () => channel.close();
-    }, []);
+    }, [favorites]);
 
     if (!track) {
         return (
@@ -104,6 +128,31 @@ useEffect(() => {
         console.log('Star button clicked! Track Info:', { title, artist, imageUrl, duration });
     }
 
+    const handleAddFavorite = (title: string, artist: string, imageUrl: string, duration: string) => {
+        console.log('handleAddFavorite called with:', { title, artist, imageUrl, duration });
+        setIsFavorited(!isFavorited);
+        const message = {
+            type: 'ADD_FAVORITE',
+            track: {
+                name: title,
+                artist: artist,
+                imageUrl: imageUrl,
+                duration: formatDuration(duration)
+            }
+        };
+        console.log('Sending message:', message);
+        channelRef.current?.postMessage(message);
+    }
+
+    const isPlaying = !!track?.isPlaying;
+
+    const isFavorite = (trackName: string, artistName: string) => {
+        return favorites.some((fav: any) =>
+            fav.name === trackName && fav.artist === artistName
+        );
+    };
+
+
 
     return (
         <div className="h-screen w-screen bg-[#121212] text-white flex flex-col p-8 overflow-hidden relative select-none">
@@ -146,12 +195,22 @@ useEffect(() => {
                             <SkipBack className="cursor-pointer duration-300 w-7 h-7 group-active:scale-90 transition-transform" />
                         </button>
 
-                        {track.isPlaying ? (
+                        {!isPlaying ? (
                             <button
                                 title="Play"
                                 aria-label="Play"
-                                className="w-16 h-16 cursor-pointer rounded-full flex items-center justify-center transform transition-transform duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-black/30 bg-grey-400 text-white ring-1 ring-transparent"
-                                onClick={() => { channelRef.current?.postMessage({ type: 'PLAY_TRACK' }); }}
+                                disabled={track.isLoadingVideo}
+                                className={`w-16 h-16 rounded-full cursor-pointer flex items-center justify-center 
+                   bg-white/1 backdrop-blur-md border border-white/1 
+                   text-white shadow-xl shadow-black/40
+                   transition-all duration-300 ease-out
+                   hover:bg-white/5 transition-8000ms ${track.isLoadingVideo ? 'opacity-60 pointer-events-none' : ''}`}
+                                onClick={() => {
+                                    // Optimistic update so UI responds immediately
+                                    setTrack((prev: any) => ({ ...prev, isPlaying: true, isLoadingVideo: true }));
+                                    playTrack(track.name, track.artist, track.imageUrl);
+                                    channelRef.current?.postMessage({ type: 'PLAY_TRACK', track: { name: track.name, artist: track.artist, imageUrl: track.imageUrl } });
+                                }}
                             >
                                 {track.isLoadingVideo ? (
                                     <Loader2 className="w-8 h-8 duration-300 animate-spin" />
@@ -163,8 +222,18 @@ useEffect(() => {
                             <button
                                 title="Pause"
                                 aria-label="Pause"
-                                className="w-16 h-16 rounded-full cursor-pointer flex items-center justify-center transform transition-transform duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-black/40 bg-grey-400 text-white ring-1 ring-transparent"
-                                onClick={() => { channelRef.current?.postMessage({ type: 'STOP_TRACK' }); }}
+                                className="w-16 h-16 rounded-full cursor-pointer flex items-center justify-center 
+                   bg-white/1 backdrop-blur-md border border-white/1 
+                   text-white shadow-xl shadow-black/40
+                   transition-all duration-300 ease-out
+                   hover:bg-white/5 transition-8000ms"
+
+                                onClick={() => {
+                                    // Optimistic update for immediate UI response
+                                    setTrack((prev: any) => ({ ...prev, isPlaying: false }));
+                                    stopPlayback();
+                                    channelRef.current?.postMessage({ type: 'STOP_TRACK', track: { name: track.name, artist: track.artist } });
+                                }}
                             >
                                 {track.isLoadingVideo ? (
                                     <Loader2 className="w-8 h-8 duration-300 animate-spin" />
@@ -176,13 +245,14 @@ useEffect(() => {
                         )}
 
 
+
                         <button className="p-2 hover:bg-white/5 cursor-pointer rounded-full transition-colors group">
                             <SkipForward className=" duration-300 w-7 h-7 group-active:scale-90 transition-transform" />
                         </button>
                     </div>
                     <button className="p-2 absolute right-0 hover:bg-white/5 cursor-pointer rounded-full transition-colors group">
-                        <Star className='w-7 h-7 '
-                            onClick={() => logTheData(
+                        <Star className={`w-7 h-7 transition-all ${isFavorited ? 'text-yellow-400 fill-yellow-400 scale-110' : ''}`}
+                            onClick={() => handleAddFavorite(
                                 track.name,
                                 track.artist,
                                 track.imageUrl,
@@ -204,5 +274,10 @@ useEffect(() => {
                 )}
             </div>
         </div>
+        /// PROGRESS BAR
+        //! СРАЗУ ПОМЕНЯТЬ КНОПКУ ПАУЗЫ/СТАРТА В МОДАЛКЕ
+        //? СУКА СДЕЛАТЬ ЛОГИКУ FAVORITES В МОДАЛЬНОМ ОКНЕ, ЕСЛИ ЕСТЬ В FAVORITES ТО ЗАЛИВАТЬ ЖЕЛТЫМ, ЕСЛИ НЕТ ТО ПРОСТО КОНТУР
+        //^ СРАВНИТЬ КОД С ГИТ ХАБА
+        //& НАДО БУДЕТ ДОБАВИТЬ КЕШИРОВАНИЕ НА УСЛОВНЫЙ ЧАС ЧТОБЫ НЕ ГРУЗИТЬ ПОСТОЯННО API ПРИ ПОВТОРНЫХ ЗАПРОСАХ ОДНИХ И ТЕХ ЖЕ ТРЕКОВ В CATEGORY 
     );
 }

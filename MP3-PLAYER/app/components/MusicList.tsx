@@ -22,7 +22,9 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
     const formatDuration = (duration: string | number): string => {
         const num = typeof duration === 'string' ? parseInt(duration) : duration;
-        if (!num || isNaN(num)) return '--:--';
+        if (!num || isNaN(num))
+            return '--:--';
+
         const seconds = num > 10000 ? Math.floor(num / 1000) : num;
 
         const minutes = Math.floor(seconds / 60);
@@ -31,15 +33,34 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     };
 
     const handleFavorite = (trackName: string, artistName: string, imageUrl: string, duration: string) => {
+        console.log('handleFavorite called with:', { trackName, artistName, imageUrl, duration });
         setFavorites((prev) => {
             const isExist = prev.some(item => item.name === trackName && item.artist === artistName);
+            let newFavorites;
             if (isExist) {
-                return prev.filter(item => item.name !== trackName || item.artist !== artistName);
+                newFavorites = prev.filter(item => !(item.name === trackName && item.artist === artistName));
             } else {
-                return [...prev, { name: trackName, artist: artistName, imageUrl, duration }];
+                newFavorites = [...prev, { name: trackName, artist: artistName, imageUrl, duration }];
             }
+            return newFavorites;
         });
     };
+
+    useEffect(() => {
+
+        console.log('favorites state updated:', favorites);
+
+    }, [favorites]);
+
+    useEffect(() => {
+        console.log('favorites state updated:', favorites);
+        const channel = new BroadcastChannel('music_player_channel');
+        channel.postMessage({
+            type: 'FAVORITES_UPDATE',
+            favorites: favorites
+        });
+        return () => channel.close();
+    }, [favorites]);
 
     const isFavorite = (name: string, artist: any) => {
         const artistName = typeof artist === 'string' ? artist : artist?.name;
@@ -59,6 +80,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                     duration: currentTrack.duration,
                     ...(currentTrack.imageUrl && { imageUrl: currentTrack.imageUrl }),
                     isLoadingVideo: isLoadingVideo,
+                    isPlaying: !!activeVideoId,
+                    activeVideoId: activeVideoId || null
                 }
             });
         }
@@ -75,7 +98,10 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
             } else if (event.data.type === 'STOP_TRACK') {
                 stopPlayback();
             } else if (event.data.type === 'PLAY_TRACK') {
-                playTrack();
+                const t = event.data.track;
+                playTrack(t.name, t.artist, t.imageUrl);
+            } else {
+                broadcastTrackUpdate(channel);
             }
         };
 
@@ -186,6 +212,14 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
             });
         }
 
+        channel.onmessage = (event) => {
+            if (event.data.type === 'ADD_FAVORITE') {
+                console.log('ADD_FAVORITE received (second useEffect):', event.data);
+                const { track } = event.data;
+                handleFavorite(track.name, track.artist, track.imageUrl, track.duration);
+            }
+        };
+
         return () => channel.close();
     }, [currentTrack, isLoadingVideo]);
 
@@ -276,6 +310,5 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         </div>
     );
 };
-// НАДО БУДЕТ ДОБАВИТЬ КЕШИРОВАНИЕ НА УСЛОВНЫЙ ЧАС ЧТОБЫ НЕ ГРУЗИТЬ ПОСТОЯННО API ПРИ ПОВТОРНЫХ ЗАПРОСАХ ОДНИХ И ТЕХ ЖЕ ТРЕКОВ
-// В CATEGORY 
+
 export default MusicList;
