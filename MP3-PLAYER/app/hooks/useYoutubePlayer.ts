@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { PlayingTrack } from '../types/types';
 
 
@@ -6,11 +6,13 @@ export const useYoutubePlayer = () => {
     const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
     const [currentTrack, setCurrentTrack] = useState<PlayingTrack | null>(null);
     const [isLoadingVideo, setIsLoadingVideo] = useState(false);
+    const loadingRef = useRef(false);
 
     const playTrack = async (trackName: string, artistName: string, imageUrl: string) => {
         // Предотвращаем повторное воспроизведение одного трека, если он уже играет
         if (currentTrack?.name === trackName && currentTrack?.artist === artistName && activeVideoId) return;
 
+        loadingRef.current = true;
         setIsLoadingVideo(true);
         try {
             const response = await fetch(
@@ -27,6 +29,7 @@ export const useYoutubePlayer = () => {
         } catch (error) {
             console.error("Error fetching YouTube video:", error);
         } finally {
+            loadingRef.current = false;
             setIsLoadingVideo(false);
         }
     };

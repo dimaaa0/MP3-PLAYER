@@ -71,7 +71,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
     const broadcastTrackUpdate = useCallback((channel: BroadcastChannel) => {
         if (currentTrack) {
-            console.log('Broadcasting TRACK_UPDATE (from broadcastTrackUpdate):', { currentTrack, isLoadingVideo });
+            console.log('Broadcasting TRACK_UPDATE (from broadcastTrackUpdate):', { currentTrack, isLoadingVideo, activeVideoId });
             channel.postMessage({
                 type: 'TRACK_UPDATE',
                 track: {
@@ -204,7 +204,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         const channel = new BroadcastChannel('music_player_channel');
 
         if (currentTrack) {
-            console.log('Broadcasting TRACK_UPDATE (from effect):', { currentTrack, isLoadingVideo });
+            console.log('Broadcasting TRACK_UPDATE (from effect):', { currentTrack, isLoadingVideo, activeVideoId });
             channel.postMessage({
                 type: 'TRACK_UPDATE',
                 track: {
@@ -228,7 +228,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         };
 
         return () => channel.close();
-    }, [currentTrack, isLoadingVideo]);
+    }, [currentTrack, isLoadingVideo, activeVideoId]);
 
     return (
         <div className='flex flex-col gap-3 pb-24'>
