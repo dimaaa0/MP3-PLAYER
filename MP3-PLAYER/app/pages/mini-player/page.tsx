@@ -122,8 +122,8 @@ export default function MiniPlayer() {
 
     return (
         <div className="h-screen w-screen bg-[#121212] text-white flex flex-col p-8 overflow-hidden relative select-none">
-            <div className="absolute inset-0 opacity-70 pointer-events-none transform scale-150">
-                {track.imageUrl ? <img src={track.imageUrl} className="w-full h-full object-cover blur-[50px]" alt="" /> : null}
+            <div className="absolute inset-0 opacity-40 pointer-events-none transform scale-150">
+                {track.imageUrl ? <img src={track.imageUrl} className="w-full h-full object-cover blur-[80px]" alt="" /> : null}
             </div>
 
             <div className="relative z-10 flex flex-col h-full">
@@ -222,8 +222,10 @@ export default function MiniPlayer() {
                 </div>
                 {track.duration != null && (
                     <>
-                        <div className='w-full h-2 bg-gray-700 rounded-full mt-4'>
-                            <div className='h-full bg-white rounded-full w-[5%]'></div>
+                        <div className='w-full h-1 bg-white/40 rounded-full mt-4'>
+                            <div className='h-full bg-white rounded-full w-[30%] flex justify-end items-center '>
+                                <div className='progress-bar-tracker w-2.5 h-2.5 bg-white rounded-2xl absolute'></div>
+                            </div>
                         </div>
                         <div className='flex justify-between mt-1'>
                             <h3>00:02</h3>

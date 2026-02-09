@@ -7,11 +7,12 @@ import { useTrackInfo } from '../hooks/useTrackInfo';
 import { useTopTracks } from '../hooks/useTopTracks';
 import { useSelectByGenre } from '../hooks/useSelectByGenre';
 import { useYoutubePlayer } from '../hooks/useYoutubePlayer';
+import { VolumeControl } from './VolumeControl';
 
 const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const [favorites, setFavorites] = useState<favoritesType[]>([]);
 
-    const { activeVideoId, currentTrack, isLoadingVideo, playTrack, stopPlayback } = useYoutubePlayer(); // МУЗЫКАК КОТОРАЯ ИГРАЕТ СЕЙЧАС
+    const { activeVideoId, currentTrack, isLoadingVideo, playTrack, stopPlayback, volume, setVolumeLevel } = useYoutubePlayer(); // МУЗЫКАК КОТОРАЯ ИГРАЕТ СЕЙЧАС
 
     const { tracks, loading } = useTopTracks();
     const selectByGenre = useSelectByGenre(recentCategory || 'All');
@@ -232,6 +233,9 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
     return (
         <div className='flex flex-col gap-3 pb-24'>
+            {/* VOLUME CONTROL */}
+            <VolumeControl volume={volume} onVolumeChange={setVolumeLevel} />
+
             {recentCategory === 'Favorites' ? (
                 favorites.length > 0 ? (
                     <div className="flex flex-col gap-2">
@@ -317,12 +321,10 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         </div>
     );
 };
+export default MusicList;
 
 //& PROGRESS BAR
-//! НАСТРОЙКА ЗВУКА (ЕСЛИ ВОЗМОЖНА)
+//^ НАСТРОЙКА ЗВУКА ✓ СДЕЛАНО (Volume Control реализована)
 //^ ПРОИГРОВКА СЛЕДУЮЩЕГО ТРЕКА ПО ЗАВЕРШЕНИЮ ТЕКУЩЕГО (МОЖЕТ БЫТЬ СЛОЖНО ИЗ-ЗА YOUTUBE API)
 //? РЕАЛИЗОВАТЬ ВОЗМОЖНОСТЬ ПЕРЕТАСКИВАНИЯ ТРЕКОВ ДЛЯ ИЗМЕНЕНИЯ ИХ ПОРЯДКА В СПИСКЕ
 //*КНОПКА СЛЕДУЮЩИЙ И ПРЕДЫДУЩИЙ ТРЕК
-//~ Реализовать возможность перетаскивания треков для изменения их порядка в списке
-
-export default MusicList;
