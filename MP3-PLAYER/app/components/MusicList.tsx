@@ -85,7 +85,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                 }
             });
         }
-    }, [currentTrack, isLoadingVideo]);
+    }, [currentTrack, isLoadingVideo, activeVideoId]);
 
     useEffect(() => {
         const channel = new BroadcastChannel('music_player_channel');
@@ -99,9 +99,13 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                 stopPlayback();
             } else if (event.data.type === 'PLAY_TRACK') {
                 const t = event.data.track;
-                playTrack(t.name, t.artist, t.imageUrl);
-            } else {
-                broadcastTrackUpdate(channel);
+                if (t?.name && t?.artist) {
+                    // Play track provided by other window
+                    playTrack(t.name, t.artist, t.imageUrl);
+                } else {
+                    // Fallback: request current track info
+                    broadcastTrackUpdate(channel);
+                }
             }
         };
 
@@ -133,6 +137,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     }: { name: string, artist: string, imageUrl: string, duration: string, isLoading?: boolean }) => {
         const active = isFavorite(name, artist);
         const isCurrentActive = currentTrack?.name === name && currentTrack?.artist === artist;
+
         return (
             <div
                 onClick={() => handlePopOut()}
@@ -207,7 +212,9 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                     artist: currentTrack.artist,
                     duration: currentTrack.duration,
                     ...(currentTrack.imageUrl && { imageUrl: currentTrack.imageUrl }),
-                    isLoadingVideo: isLoadingVideo
+                    isLoadingVideo: isLoadingVideo,
+                    isPlaying: !!activeVideoId,
+                    activeVideoId: activeVideoId || null
                 }
             });
         }
@@ -310,5 +317,12 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         </div>
     );
 };
+
+//& PROGRESS BAR
+//! НАСТРОЙКА ЗВУКА (ЕСЛИ ВОЗМОЖНА)
+//^ ПРОИГРОВКА СЛЕДУЮЩЕГО ТРЕКА ПО ЗАВЕРШЕНИЮ ТЕКУЩЕГО (МОЖЕТ БЫТЬ СЛОЖНО ИЗ-ЗА YOUTUBE API)
+//? РЕАЛИЗОВАТЬ ВОЗМОЖНОСТЬ ПЕРЕТАСКИВАНИЯ ТРЕКОВ ДЛЯ ИЗМЕНЕНИЯ ИХ ПОРЯДКА В СПИСКЕ
+//*КНОПКА СЛЕДУЮЩИЙ И ПРЕДЫДУЩИЙ ТРЕК
+//~ Реализовать возможность перетаскивания треков для изменения их порядка в списке
 
 export default MusicList;

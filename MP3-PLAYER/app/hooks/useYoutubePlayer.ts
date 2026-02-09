@@ -8,7 +8,8 @@ export const useYoutubePlayer = () => {
     const [isLoadingVideo, setIsLoadingVideo] = useState(false);
 
     const playTrack = async (trackName: string, artistName: string, imageUrl: string) => {
-        if (currentTrack?.name === trackName && currentTrack?.artist === artistName) return;
+        // Предотвращаем повторное воспроизведение одного трека, если он уже играет
+        if (currentTrack?.name === trackName && currentTrack?.artist === artistName && activeVideoId) return;
 
         setIsLoadingVideo(true);
         try {
