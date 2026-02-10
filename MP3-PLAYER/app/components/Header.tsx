@@ -98,17 +98,17 @@ const Header = ({ onMusicUpdate, setInputValue, deleteSearch }: HeaderProps) => 
             </div>
             <div className="flex content-between cursor-pointer justify-between w-full relative">
                 <div onClick={handleReload} className="title flex items-center content-center gap-1.5">
-                    <Image src="music.svg" alt="" width={38} height={38}
+                    <Image src="music.svg" alt="" width={52} height={52}
                         className="p-1.5 rounded-lg bg-[#3b33339a]"
                     />
-                    <h1 className="font-fb text-2xl text-white">Music Stream</h1>
+                    <h1 className="font-fb w-full text-[26px] text-white">Music Stream</h1>
                 </div>
 
                 <div
 
-                    className="searcher relative  text-white font-fr w-full max-w-65">
+                    className="searcher relative flex justify-center items-center text-white font-fr w-full max-w-65">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-4">
-                        <Search className="absolute cursor-pointer left-2.5" size={14} />
+                        <Search className="absolute cursor-pointer left-3" size={20} />
                     </div>
                     <input
                         onMouseEnter={handleChangeToVisibility}
@@ -120,7 +120,7 @@ const Header = ({ onMusicUpdate, setInputValue, deleteSearch }: HeaderProps) => 
 
                         type="text"
                         placeholder="Search tracks..."
-                        className="w-full z-999 bg-[#0000003b] font-fr text-[14px] text-white text-sm rounded-xl border py-3 pl-10 pr-12 outline-none transition-colors placeholder:text-white"
+                        className="w-full z-999 bg-[#0000003b] font-fr text-[18px] text-white text-sm rounded-xl border py-2 pl-10 pr-12 outline-none transition-colors placeholder:text-white"
                     />
                     <button
                         onMouseEnter={handleChangeToVisibility}
