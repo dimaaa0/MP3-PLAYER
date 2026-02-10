@@ -7,7 +7,6 @@ import { useTrackInfo } from '../hooks/useTrackInfo';
 import { useTopTracks } from '../hooks/useTopTracks';
 import { useSelectByGenre } from '../hooks/useSelectByGenre';
 import { useYoutubePlayer } from '../hooks/useYoutubePlayer';
-import { VolumeControl } from './VolumeControl';
 
 const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const [favorites, setFavorites] = useState<favoritesType[]>([]);
@@ -233,8 +232,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
     return (
         <div className='flex flex-col gap-3 pb-24'>
-            {/* VOLUME CONTROL */}
-            <VolumeControl volume={volume} onVolumeChange={setVolumeLevel} />
 
             {recentCategory === 'Favorites' ? (
                 favorites.length > 0 ? (
