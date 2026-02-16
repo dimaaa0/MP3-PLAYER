@@ -11,7 +11,7 @@ import { useYoutubePlayer } from '../hooks/useYoutubePlayer';
 const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const [favorites, setFavorites] = useState<favoritesType[]>([]);
 
-    const { activeVideoId, currentTrack, isLoadingVideo, playTrack, stopPlayback, volume, setVolumeLevel } = useYoutubePlayer(); // МУЗЫКАК КОТОРАЯ ИГРАЕТ СЕЙЧАС
+    const { activeVideoId, currentTrack, isLoadingVideo, playTrack, stopPlayback } = useYoutubePlayer(); // МУЗЫКАК КОТОРАЯ ИГРАЕТ СЕЙЧАС
 
     const { tracks, loading } = useTopTracks();
     const selectByGenre = useSelectByGenre(recentCategory || 'All');
@@ -33,7 +33,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     };
 
     const handleFavorite = (trackName: string, artistName: string, imageUrl: string, duration: string) => {
-        console.log('handleFavorite called with:', { trackName, artistName, imageUrl, duration });
         setFavorites((prev) => {
             const isExist = prev.some(item => item.name === trackName && item.artist === artistName);
             let newFavorites;
@@ -64,7 +63,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
     const broadcastTrackUpdate = useCallback((channel: BroadcastChannel) => {
         if (currentTrack) {
-            console.log('Broadcasting TRACK_UPDATE (from broadcastTrackUpdate):', { currentTrack, isLoadingVideo, activeVideoId });
             channel.postMessage({
                 type: 'TRACK_UPDATE',
                 track: {
@@ -119,6 +117,9 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         window.open('/pages/mini-player', 'MusicStreamPlayer', features);
     };
 
+    let i = 0
+
+
 
 
     const TrackRow = ({
@@ -126,10 +127,13 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         artist,
         imageUrl,
         duration,
-        isLoading
-    }: { name: string, artist: string, imageUrl: string, duration: string, isLoading?: boolean }) => {
+        isLoading,
+        id
+    }: { name: string, artist: string, imageUrl: string, duration: string, isLoading?: boolean, id: number }) => {
         const active = isFavorite(name, artist);
         const isCurrentActive = currentTrack?.name === name && currentTrack?.artist === artist;
+
+
 
         return (
             <div
@@ -176,6 +180,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                     <div className="name flex flex-col justify-center">
                         <h1 className={`text-sm font-bold line-clamp-1 ${isCurrentActive ? 'text-blue-400' : ''}`}>{name}</h1>
                         <h3 className="text-xs text-gray-400">{artist}</h3>
+                        <span className="text-xs text-gray-500">{id}</span>
                     </div>
                 </div>
                 <div className="details flex items-center gap-2">
@@ -197,7 +202,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         const channel = new BroadcastChannel('music_player_channel');
 
         if (currentTrack) {
-            console.log('Broadcasting TRACK_UPDATE (from effect):', { currentTrack, isLoadingVideo, activeVideoId });
             channel.postMessage({
                 type: 'TRACK_UPDATE',
                 track: {
@@ -214,7 +218,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
         channel.onmessage = (event) => {
             if (event.data.type === 'ADD_FAVORITE') {
-                console.log('ADD_FAVORITE received (second useEffect):', event.data);
                 const { track } = event.data;
                 handleFavorite(track.name, track.artist, track.imageUrl, track.duration);
             }
@@ -236,6 +239,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                 artist={item.artist}
                                 imageUrl={item.imageUrl}
                                 duration={item.duration}
+                                id={i++}
                             />
                         ))}
                     </div>
@@ -253,6 +257,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                             imageUrl={searchData.imageUrl[index]}
                             duration={searchData.duration[index] || "--:--"}
                             isLoading={searchData.isLoading}
+                            id={i++}
                         />
                     ))}
                 </div>
@@ -274,6 +279,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                     artist={track.artist.name}
                                     imageUrl={trendData.imageUrl[index]}
                                     duration={formatDuration(track.duration)}
+                                    id={i++}
+
                                 />
                             ))}
                         </div>
@@ -287,6 +294,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                     imageUrl={genreData.imageUrl[index]}
                                     duration={formatDuration(track.duration)}
                                     isLoading={genreData.isLoading}
+                                    id={i++}
                                 />
                             ))}
                         </div>
@@ -314,7 +322,9 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 export default MusicList;
 
 //& PROGRESS BAR
-//^ НАСТРОЙКА ЗВУКА ✓ СДЕЛАНО (Volume Control реализована)
 //^ ПРОИГРОВКА СЛЕДУЮЩЕГО ТРЕКА ПО ЗАВЕРШЕНИЮ ТЕКУЩЕГО (МОЖЕТ БЫТЬ СЛОЖНО ИЗ-ЗА YOUTUBE API)
 //? РЕАЛИЗОВАТЬ ВОЗМОЖНОСТЬ ПЕРЕТАСКИВАНИЯ ТРЕКОВ ДЛЯ ИЗМЕНЕНИЯ ИХ ПОРЯДКА В СПИСКЕ
 //*КНОПКА СЛЕДУЮЩИЙ И ПРЕДЫДУЩИЙ ТРЕК
+
+//В ОБЩЕМ Я ДОБАВИЛ СЮДА ПОДСЧЕТ ID КАЖДОГО ТРЕКА ЧТОБЫ ПРИ ОКОНЧАНИИ ПЕРВОГО 
+// ТРЕКА А ТОЧНЕЕ КОГДА ТАЙМЕР ДОЙДЕТ ДО ТОГО МОМЕНТА СКОЛЬКО И СЕКУНД В DURATION, ТО ID БУДЕТ + 1 

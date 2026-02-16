@@ -42,6 +42,7 @@ export async function GET(request: Request) {
         }
 
         return NextResponse.json({ videoId, duration });
+
     } catch (error) {
         return NextResponse.json({ error: "Failed to fetch video ID" }, { status: 500 });
     }

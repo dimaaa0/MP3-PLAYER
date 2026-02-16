@@ -178,7 +178,13 @@ export default function MiniPlayer() {
                                 {track.isLoadingVideo ? (
                                     <Loader2 className="w-8 h-8 duration-300 animate-spin" />
                                 ) : (
-                                    <Play className="w-8 h-8" />
+                                    <Play className="w-8 h-8"
+                                        onClick={() => {
+                                            setTrack((prev: any) => ({ ...prev, isPlaying: true, isLoadingVideo: true }));
+                                            playTrack(track.name, track.artist, track.imageUrl);
+                                            channelRef.current?.postMessage({ type: 'PLAY_TRACK', track: { name: track.name, artist: track.artist, imageUrl: track.imageUrl } });
+                                        }}
+                                    />
                                 )}
                             </button>
                         ) : (
@@ -199,7 +205,13 @@ export default function MiniPlayer() {
                                 {track.isLoadingVideo ? (
                                     <Loader2 className="w-8 h-8 duration-300 animate-spin" />
                                 ) : (
-                                    <Pause className="w-8 h-8" />
+                                    <Pause className="w-8 h-8"
+                                        onClick={() => {
+                                            setTrack((prev: any) => ({ ...prev, isPlaying: false }));
+                                            stopPlayback();
+                                            channelRef.current?.postMessage({ type: 'STOP_TRACK', track: { name: track.name, artist: track.artist } });
+                                        }}
+                                    />
                                 )}
                             </button>
                         )}
