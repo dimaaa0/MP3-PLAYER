@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Loader2, Star, HeartOff } from 'lucide-react';
 import { useYoutubePlayer } from '../../hooks/useYoutubePlayer';
+import { setTimeout } from 'node:timers/promises';
 
 export default function MiniPlayer() {
     const [track, setTrack] = useState<any>(null);
@@ -27,25 +28,10 @@ export default function MiniPlayer() {
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const playTimer = (duration: number) => {
-        if (timerRef.current) {
-            clearInterval(timerRef.current);
-        }
 
-        setTimer(0);
 
-        timerRef.current = setInterval(() => {
-            setTimer((prev) => {
-                if (prev >= duration) {
-                    if (timerRef.current) {
-                        clearInterval(timerRef.current);
-                    }
-                    return duration;
-                }
-                return prev + 1;
-            });
-        }, 1000);
-    };
+
+
 
     useEffect(() => {
         const channel = new BroadcastChannel('music_player_channel');
@@ -112,6 +98,25 @@ export default function MiniPlayer() {
 
     const isPlaying = !!track?.isPlaying;
 
+
+    // useEffect(() => {
+    //     let interval: NodeJS.Timeout;
+
+    //     if (isPlaying) {
+    //         interval = setInterval(() => {
+    //             setCountedSeconds((prev) => prev + 1);
+    //         }, 1000);
+    //     }
+
+    //     return () => {
+    //         if (interval) clearInterval(interval);
+    //     };
+    // }, [isPlaying]);
+
+    // useEffect(() => {
+    //     setCountedSeconds(0);
+    // }, [track?.name]);
+
     if (!track) {
         return (
             <div className="h-screen w-screen bg-[#121212] flex items-center justify-center text-gray-500 p-6 text-center">
@@ -119,6 +124,7 @@ export default function MiniPlayer() {
             </div>
         );
     }
+
 
     return (
         <div className="h-screen w-screen bg-[#121212] text-white flex flex-col p-8 overflow-hidden relative select-none">
@@ -192,10 +198,10 @@ export default function MiniPlayer() {
                                 title="Pause"
                                 aria-label="Pause"
                                 className="w-16 h-16 rounded-full cursor-pointer flex items-center justify-center 
-                   bg-white/1 backdrop-blur-md border border-white/1 
+                   bg-white/4 border border-white/1 
                    text-white shadow-xl shadow-black/40
                    transition-all duration-300 ease-out
-                   hover:bg-white/5 transition-8000ms"
+                   hover:bg-white/8 transition-8000ms"
                                 onClick={() => {
                                     setTrack((prev: any) => ({ ...prev, isPlaying: false }));
                                     stopPlayback();
@@ -232,7 +238,7 @@ export default function MiniPlayer() {
                         <Star className={`w-7 h-7 transition-all ${isFavorited ? 'text-yellow-400 fill-yellow-400 scale-110' : ''}`} />
                     </button>
                 </div>
-                {track.duration != null && (
+                {formatDuration(track.duration) != '--:--' && (
                     <>
                         <div className='w-full h-1 bg-white/40 rounded-full mt-4'>
                             <div className='h-full bg-white rounded-full w-[30%] flex justify-end items-center '>
@@ -240,7 +246,7 @@ export default function MiniPlayer() {
                             </div>
                         </div>
                         <div className='flex justify-between mt-1'>
-                            <h3>00:02</h3>
+                            <h3>00:00</h3>
                             <h3>{formatDuration(track.duration)}</h3>
                         </div>
                     </>

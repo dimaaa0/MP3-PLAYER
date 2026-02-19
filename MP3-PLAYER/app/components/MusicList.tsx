@@ -10,15 +10,16 @@ import { useYoutubePlayer } from '../hooks/useYoutubePlayer';
 
 const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const [favorites, setFavorites] = useState<favoritesType[]>([]);
-
     const { activeVideoId, currentTrack, isLoadingVideo, playTrack, stopPlayback } = useYoutubePlayer(); // МУЗЫКАК КОТОРАЯ ИГРАЕТ СЕЙЧАС
-
     const { tracks, loading } = useTopTracks();
     const selectByGenre = useSelectByGenre(recentCategory || 'All');
-
     const trendData = useTrackInfo(tracks?.tracks?.track || []);
     const searchData = useTrackInfo(music || []);
     const genreData = useTrackInfo(selectByGenre.data?.tracks || []);
+    const [countedSeconds, setCountedSeconds] = useState(0);
+    const [formatedDuration, setFormattedDuration] = useState();;
+
+    let id = 0 // Setted id
 
     const formatDuration = (duration: string | number): string => {
         const num = typeof duration === 'string' ? parseInt(duration) : duration;
@@ -117,7 +118,24 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         window.open('/pages/mini-player', 'MusicStreamPlayer', features);
     };
 
-    let i = 0
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+
+        if (currentTrack) {
+            interval = setInterval(() => {
+                setCountedSeconds((prev) => prev + 1);
+            }, 1000);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [currentTrack]);
+
+    useEffect(() => {
+        setFormattedDuration(formatDuration(currentTrack?.duration) === '--:--' && '00:00');
+    }, [currentTrack?.name]);
+
 
 
 
@@ -128,8 +146,9 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         imageUrl,
         duration,
         isLoading,
-        id
-    }: { name: string, artist: string, imageUrl: string, duration: string, isLoading?: boolean, id: number }) => {
+        id,
+        goingTime
+    }: { name: string, artist: string, imageUrl: string, duration: string, isLoading?: boolean, id: number, goingTime: number, goingtime: number | string }) => {
         const active = isFavorite(name, artist);
         const isCurrentActive = currentTrack?.name === name && currentTrack?.artist === artist;
 
@@ -185,6 +204,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                 </div>
                 <div className="details flex items-center gap-2">
                     <h3 className="text-sm tabular-nums mr-2">{duration}</h3>
+                    <h3 className="text-sm tabular-nums mr-2">{countedSeconds}</h3>
                     <Star
                         onClick={(e) => {
                             e.stopPropagation();
@@ -239,7 +259,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                 artist={item.artist}
                                 imageUrl={item.imageUrl}
                                 duration={item.duration}
-                                id={i++}
+                                id={id++}
                             />
                         ))}
                     </div>
@@ -257,7 +277,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                             imageUrl={searchData.imageUrl[index]}
                             duration={searchData.duration[index] || "--:--"}
                             isLoading={searchData.isLoading}
-                            id={i++}
+                            id={id++}
                         />
                     ))}
                 </div>
@@ -279,8 +299,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                     artist={track.artist.name}
                                     imageUrl={trendData.imageUrl[index]}
                                     duration={formatDuration(track.duration)}
-                                    id={i++}
-
+                                    id={id++}
+                                    goingTime={formatDuration(formatedDuration)}
                                 />
                             ))}
                         </div>
@@ -294,7 +314,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                     imageUrl={genreData.imageUrl[index]}
                                     duration={formatDuration(track.duration)}
                                     isLoading={genreData.isLoading}
-                                    id={i++}
+                                    id={id++}
                                 />
                             ))}
                         </div>
@@ -326,5 +346,5 @@ export default MusicList;
 //? РЕАЛИЗОВАТЬ ВОЗМОЖНОСТЬ ПЕРЕТАСКИВАНИЯ ТРЕКОВ ДЛЯ ИЗМЕНЕНИЯ ИХ ПОРЯДКА В СПИСКЕ
 //*КНОПКА СЛЕДУЮЩИЙ И ПРЕДЫДУЩИЙ ТРЕК
 
-//В ОБЩЕМ Я ДОБАВИЛ СЮДА ПОДСЧЕТ ID КАЖДОГО ТРЕКА ЧТОБЫ ПРИ ОКОНЧАНИИ ПЕРВОГО 
+//В ОБЩЕМ Я ДОБАВИЛ СЮДА ПОДСЧЕТ ID КАЖДОГО ТРЕКА ЧТОБЫ ПРИ ОКОНЧАНИИ ПЕРВОГО
 // ТРЕКА А ТОЧНЕЕ КОГДА ТАЙМЕР ДОЙДЕТ ДО ТОГО МОМЕНТА СКОЛЬКО И СЕКУНД В DURATION, ТО ID БУДЕТ + 1 

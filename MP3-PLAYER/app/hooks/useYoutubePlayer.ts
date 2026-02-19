@@ -55,11 +55,9 @@ export const useYoutubePlayer = () => {
     };
 
     const stopPlayback = () => {
-        console.log('айдишка видео: ' + activeVideoId);
-        
+
         setActiveVideoId(null);
         setCurrentTrack(null);
-        console.log('the track is stopped');
     };
 
 
