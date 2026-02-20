@@ -17,13 +17,14 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const searchData = useTrackInfo(music || []);
     const genreData = useTrackInfo(selectByGenre.data?.tracks || []);
     const [countedSeconds, setCountedSeconds] = useState(0);
-    const [formatedDuration, setFormattedDuration] = useState();;
 
     let id = 0 // Setted id
 
     const formatDuration = (duration: string | number): string => {
         const num = typeof duration === 'string' ? parseInt(duration) : duration;
-        if (!num || isNaN(num))
+        if (num == 0) return '00:00';
+
+        else if (!num || isNaN(num))
             return '--:--';
 
         const seconds = num > 10000 ? Math.floor(num / 1000) : num;
@@ -133,7 +134,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     }, [currentTrack]);
 
     useEffect(() => {
-        setFormattedDuration(formatDuration(currentTrack?.duration) === '--:--' && '00:00');
+        setCountedSeconds(0);
     }, [currentTrack?.name]);
 
 
@@ -204,7 +205,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                 </div>
                 <div className="details flex items-center gap-2">
                     <h3 className="text-sm tabular-nums mr-2">{duration}</h3>
-                    <h3 className="text-sm tabular-nums mr-2">{countedSeconds}</h3>
+                    <h3 className="text-sm tabular-nums mr-2">{goingTime}</h3>
                     <Star
                         onClick={(e) => {
                             e.stopPropagation();
@@ -300,7 +301,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                     imageUrl={trendData.imageUrl[index]}
                                     duration={formatDuration(track.duration)}
                                     id={id++}
-                                    goingTime={formatDuration(formatedDuration)}
+                                    goingTime={formatDuration(countedSeconds == 0 ? '00:00' : countedSeconds.toString())}
                                 />
                             ))}
                         </div>
