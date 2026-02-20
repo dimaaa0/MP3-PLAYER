@@ -22,7 +22,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
     const formatDuration = (duration: string | number): string => {
         const num = typeof duration === 'string' ? parseInt(duration) : duration;
-        if (num == 0) return '00:00';
+        if (num == 0) return '0:00';
 
         else if (!num || isNaN(num))
             return '--:--';
@@ -120,23 +120,22 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     };
 
     useEffect(() => {
-        let interval: NodeJS.Timeout;
+        let interval: number | undefined;
 
-        if (currentTrack) {
-            interval = setInterval(() => {
+        if (activeVideoId && currentTrack) {
+            interval = window.setInterval(() => {
                 setCountedSeconds((prev) => prev + 1);
             }, 1000);
         }
 
         return () => {
-            if (interval) clearInterval(interval);
+            if (interval !== undefined) window.clearInterval(interval);
         };
-    }, [currentTrack]);
+    }, [activeVideoId, currentTrack]);
 
     useEffect(() => {
         setCountedSeconds(0);
-    }, [currentTrack?.name]);
-
+    }, [currentTrack?.name, activeVideoId]);
 
 
 
@@ -176,7 +175,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                             onClick={(e) => { e.stopPropagation(); stopPlayback(); }} />
                                     ) : (
                                         <Play className="w-6 h-6 text-white fill-white"
-                                            onClick={(e) => { e.stopPropagation(); playTrack(name, artist, imageUrl); }} />
+                                            onClick={(e) => { e.stopPropagation(); playTrack(name, artist, imageUrl); setCountedSeconds(0) }} />
                                     )}
                                 </div>
                             </>
@@ -191,7 +190,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                             onClick={(e) => { e.stopPropagation(); stopPlayback(); }} />
                                     ) : (
                                         <Play className="w-6 h-6 text-white fill-white"
-                                            onClick={(e) => { e.stopPropagation(); playTrack(name, artist, imageUrl); }} />
+                                            onClick={(e) => { e.stopPropagation(); playTrack(name, artist, imageUrl); setCountedSeconds(0) }} />
                                     )}
                                 </div>
                             </>
@@ -261,6 +260,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                 imageUrl={item.imageUrl}
                                 duration={item.duration}
                                 id={id++}
+                                goingTime={formatDuration(countedSeconds == 0 ? '0:00' : countedSeconds.toString())}
                             />
                         ))}
                     </div>
@@ -279,6 +279,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                             duration={searchData.duration[index] || "--:--"}
                             isLoading={searchData.isLoading}
                             id={id++}
+                            goingTime={formatDuration(countedSeconds == 0 ? '0:00' : countedSeconds.toString())}
                         />
                     ))}
                 </div>
@@ -301,7 +302,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                     imageUrl={trendData.imageUrl[index]}
                                     duration={formatDuration(track.duration)}
                                     id={id++}
-                                    goingTime={formatDuration(countedSeconds == 0 ? '00:00' : countedSeconds.toString())}
+                                    goingTime={formatDuration(countedSeconds == 0 ? '0:00' : countedSeconds.toString())}
                                 />
                             ))}
                         </div>
@@ -316,6 +317,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                     duration={formatDuration(track.duration)}
                                     isLoading={genreData.isLoading}
                                     id={id++}
+                                    goingTime={formatDuration(countedSeconds == 0 ? '0:00' : countedSeconds.toString())}
                                 />
                             ))}
                         </div>

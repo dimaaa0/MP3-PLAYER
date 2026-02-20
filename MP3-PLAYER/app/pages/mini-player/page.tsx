@@ -238,7 +238,7 @@ export default function MiniPlayer() {
                         <Star className={`w-7 h-7 transition-all ${isFavorited ? 'text-yellow-400 fill-yellow-400 scale-110' : ''}`} />
                     </button>
                 </div>
-                {formatDuration(track.duration) != '--:--' && (
+                {formatDuration(track.duration) != '0:00' && (
                     <>
                         <div className='w-full h-1 bg-white/40 rounded-full mt-4'>
                             <div className='h-full bg-white rounded-full w-[30%] flex justify-end items-center '>
@@ -246,7 +246,7 @@ export default function MiniPlayer() {
                             </div>
                         </div>
                         <div className='flex justify-between mt-1'>
-                            <h3>00:00</h3>
+                            <h3>0:00</h3>
                             <h3>{formatDuration(track.duration)}</h3>
                         </div>
                     </>

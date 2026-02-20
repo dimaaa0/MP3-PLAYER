@@ -44,7 +44,7 @@ export const useYoutubePlayer = () => {
                     duration: data.duration
                 });
             } else {
-                console.error("Video ID not found");
+                console.log("Video ID not found");
             }
         } catch (error) {
             console.error("Error fetching YouTube video:", error);
@@ -55,7 +55,6 @@ export const useYoutubePlayer = () => {
     };
 
     const stopPlayback = () => {
-
         setActiveVideoId(null);
         setCurrentTrack(null);
     };
