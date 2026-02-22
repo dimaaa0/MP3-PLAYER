@@ -28,10 +28,19 @@ export default function MiniPlayer() {
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
 
+     const FormatDurationPlusExtraSeconds = (duration: string | number): string => { //~ IN ORDER TO FIX PROGRESS BAR GOING A BIT FASTER THAN ACTUAL DURATION
+        const num = typeof duration === 'string' ? parseInt(duration) : duration;
+        if (num == 0) return '0:00';
 
+        else if (!num || isNaN(num))
+            return '--:--';
 
+        const seconds = num > 10000 ? Math.floor(num / 1000) : num;
 
-
+        const minutes = Math.floor(seconds / 60);
+        const secs = (seconds + 2) % 60;
+        return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    };
 
     useEffect(() => {
         const channel = new BroadcastChannel('music_player_channel');
@@ -76,10 +85,6 @@ export default function MiniPlayer() {
         }
     }, [track, favorites]);
 
-    const logTheData = (title: string, artist: string, imageUrl: string, duration: number) => {
-        console.log('Star button clicked! Track Info:', { title, artist, imageUrl, duration });
-    };
-
     const handleAddFavorite = (title: string, artist: string, imageUrl: string, duration: string) => {
         console.log('handleAddFavorite called with:', { title, artist, imageUrl, duration });
         setIsFavorited(!isFavorited);
@@ -89,7 +94,7 @@ export default function MiniPlayer() {
                 name: title,
                 artist: artist,
                 imageUrl: imageUrl,
-                duration: formatDuration(duration)
+                duration: FormatDurationPlusExtraSeconds(duration)
             }
         };
         console.log('Sending message:', message);
@@ -97,25 +102,6 @@ export default function MiniPlayer() {
     };
 
     const isPlaying = !!track?.isPlaying;
-
-
-    // useEffect(() => {
-    //     let interval: NodeJS.Timeout;
-
-    //     if (isPlaying) {
-    //         interval = setInterval(() => {
-    //             setCountedSeconds((prev) => prev + 1);
-    //         }, 1000);
-    //     }
-
-    //     return () => {
-    //         if (interval) clearInterval(interval);
-    //     };
-    // }, [isPlaying]);
-
-    // useEffect(() => {
-    //     setCountedSeconds(0);
-    // }, [track?.name]);
 
     if (!track) {
         return (
@@ -232,13 +218,13 @@ export default function MiniPlayer() {
                             track.name,
                             track.artist,
                             track.imageUrl,
-                            track.duration
+                            FormatDurationPlusExtraSeconds(track.duration)
                         )}
                     >
                         <Star className={`w-7 h-7 transition-all ${isFavorited ? 'text-yellow-400 fill-yellow-400 scale-110' : ''}`} />
                     </button>
                 </div>
-                {formatDuration(track.duration) != '0:00' && (
+                {FormatDurationPlusExtraSeconds(track.duration) != '0:00' && (
                     <>
                         <div className='w-full h-1 bg-white/40 rounded-full mt-4'>
                             <div className='h-full bg-white rounded-full w-[30%] flex justify-end items-center '>
@@ -247,7 +233,7 @@ export default function MiniPlayer() {
                         </div>
                         <div className='flex justify-between mt-1'>
                             <h3>0:00</h3>
-                            <h3>{formatDuration(track.duration)}</h3>
+                            <h3>{FormatDurationPlusExtraSeconds(track.duration)}</h3>
                         </div>
                     </>
                 )}

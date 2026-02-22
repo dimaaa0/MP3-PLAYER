@@ -30,7 +30,21 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         const seconds = num > 10000 ? Math.floor(num / 1000) : num;
 
         const minutes = Math.floor(seconds / 60);
-        const secs = seconds % 60;
+        const secs = (seconds) % 60;
+        return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const FormatDurationPlusExtraSeconds = (duration: string | number): string => { //~ IN ORDER TO FIX PROGRESS BAR GOING A BIT FASTER THAN ACTUAL DURATION
+        const num = typeof duration === 'string' ? parseInt(duration) : duration;
+        if (num == 0) return '0:00';
+
+        else if (!num || isNaN(num))
+            return '--:--';
+
+        const seconds = num > 10000 ? Math.floor(num / 1000) : num;
+
+        const minutes = Math.floor(seconds / 60);
+        const secs = (seconds + 2) % 60;
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
 
@@ -93,10 +107,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
             } else if (event.data.type === 'PLAY_TRACK') {
                 const t = event.data.track;
                 if (t?.name && t?.artist) {
-                    // Play track provided by other window
                     playTrack(t.name, t.artist, t.imageUrl);
                 } else {
-                    // Fallback: request current track info
                     broadcastTrackUpdate(channel);
                 }
             }
@@ -120,22 +132,23 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     };
 
     useEffect(() => {
-        let interval: number | undefined;
+        let interval: NodeJS.Timeout;
 
-        if (activeVideoId && currentTrack) {
-            interval = window.setInterval(() => {
+        if (currentTrack) {
+            interval = setInterval(() => {
                 setCountedSeconds((prev) => prev + 1);
             }, 1000);
         }
 
         return () => {
-            if (interval !== undefined) window.clearInterval(interval);
+            if (interval) clearInterval(interval);
         };
-    }, [activeVideoId, currentTrack]);
+    }, [currentTrack]);
 
     useEffect(() => {
         setCountedSeconds(0);
-    }, [currentTrack?.name, activeVideoId]);
+    }, [currentTrack?.name]);
+
 
 
 
@@ -150,9 +163,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         goingTime
     }: { name: string, artist: string, imageUrl: string, duration: string, isLoading?: boolean, id: number, goingTime: number, goingtime: number | string }) => {
         const active = isFavorite(name, artist);
+
         const isCurrentActive = currentTrack?.name === name && currentTrack?.artist === artist;
-
-
 
         return (
             <div
@@ -175,7 +187,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                             onClick={(e) => { e.stopPropagation(); stopPlayback(); }} />
                                     ) : (
                                         <Play className="w-6 h-6 text-white fill-white"
-                                            onClick={(e) => { e.stopPropagation(); playTrack(name, artist, imageUrl); setCountedSeconds(0) }} />
+                                            onClick={(e) => { e.stopPropagation(); playTrack(name, artist, imageUrl); }} />
                                     )}
                                 </div>
                             </>
@@ -190,7 +202,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                             onClick={(e) => { e.stopPropagation(); stopPlayback(); }} />
                                     ) : (
                                         <Play className="w-6 h-6 text-white fill-white"
-                                            onClick={(e) => { e.stopPropagation(); playTrack(name, artist, imageUrl); setCountedSeconds(0) }} />
+                                            onClick={(e) => { e.stopPropagation(); playTrack(name, artist, imageUrl); }} />
                                     )}
                                 </div>
                             </>
@@ -302,7 +314,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                     imageUrl={trendData.imageUrl[index]}
                                     duration={formatDuration(track.duration)}
                                     id={id++}
-                                    goingTime={formatDuration(countedSeconds == 0 ? '0:00' : countedSeconds.toString())}
+                                    goingTime={formatDuration(countedSeconds == 0 ? '00:00' : countedSeconds.toString())}
                                 />
                             ))}
                         </div>
@@ -317,7 +329,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                     duration={formatDuration(track.duration)}
                                     isLoading={genreData.isLoading}
                                     id={id++}
-                                    goingTime={formatDuration(countedSeconds == 0 ? '0:00' : countedSeconds.toString())}
+                                    goingTime={formatDuration(countedSeconds == 0 ? '00:00' : countedSeconds.toString())}
                                 />
                             ))}
                         </div>
@@ -351,3 +363,5 @@ export default MusicList;
 
 //В ОБЩЕМ Я ДОБАВИЛ СЮДА ПОДСЧЕТ ID КАЖДОГО ТРЕКА ЧТОБЫ ПРИ ОКОНЧАНИИ ПЕРВОГО
 // ТРЕКА А ТОЧНЕЕ КОГДА ТАЙМЕР ДОЙДЕТ ДО ТОГО МОМЕНТА СКОЛЬКО И СЕКУНД В DURATION, ТО ID БУДЕТ + 1 
+
+//! сукаа не работает duration в favorites
