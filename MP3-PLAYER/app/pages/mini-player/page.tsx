@@ -28,10 +28,11 @@ export default function MiniPlayer() {
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
 
-
-
-
-
+    const formatGoingTime = (goingTime: number): string => {
+        if (goingTime > 10000) {
+            goingTime = Math.floor(goingTime / 1000);
+        } return goingTime.toString();
+    }
 
     useEffect(() => {
         const channel = new BroadcastChannel('music_player_channel');
@@ -76,10 +77,6 @@ export default function MiniPlayer() {
         }
     }, [track, favorites]);
 
-    const logTheData = (title: string, artist: string, imageUrl: string, duration: number) => {
-        console.log('Star button clicked! Track Info:', { title, artist, imageUrl, duration });
-    };
-
     const handleAddFavorite = (title: string, artist: string, imageUrl: string, duration: string) => {
         console.log('handleAddFavorite called with:', { title, artist, imageUrl, duration });
         setIsFavorited(!isFavorited);
@@ -97,7 +94,6 @@ export default function MiniPlayer() {
     };
 
     const isPlaying = !!track?.isPlaying;
-
 
     // useEffect(() => {
     //     let interval: NodeJS.Timeout;
@@ -241,12 +237,15 @@ export default function MiniPlayer() {
                 {formatDuration(track.duration) != '0:00' && (
                     <>
                         <div className='w-full h-1 bg-white/40 rounded-full mt-4'>
-                            <div className='h-full bg-white rounded-full w-[30%] flex justify-end items-center '>
+                            <div
+                                className='h-full bg-white rounded-full flex justify-end items-center'
+                                style={{ width: `${(track.goingTime / track.duration) * 100}%` }}
+                            >
                                 <div className='progress-bar-tracker w-2.5 h-2.5 bg-white rounded-2xl absolute'></div>
                             </div>
                         </div>
                         <div className='flex justify-between mt-1'>
-                            <h3>0:00</h3>
+                            <h3>{formatDuration(track.goingTime)}</h3>
                             <h3>{formatDuration(track.duration)}</h3>
                         </div>
                     </>

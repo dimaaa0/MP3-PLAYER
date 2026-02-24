@@ -14,6 +14,7 @@ export interface Track {
     image?: { size: string, '#text': string }[];
     url: string;
     mbid?: string;
+    goingTime?: number;
 }
 
 export interface favoritesType {
@@ -24,6 +25,7 @@ export interface favoritesType {
     imageUrl: string;
     duration: string;
     genre: string;
+    goingTime: number;
 }
 
 export interface TopTracksResponseType {
@@ -62,4 +64,5 @@ export interface PlayingTrack {
     artist: string;
     duration: string;
     imageUrl?: string;
+    goingTime: number;
 }

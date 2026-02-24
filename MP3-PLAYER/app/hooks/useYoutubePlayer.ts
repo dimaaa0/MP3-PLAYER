@@ -6,6 +6,12 @@ export const useYoutubePlayer = () => {
     const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
     const [currentTrack, setCurrentTrack] = useState<PlayingTrack | null>(null);
     const [isLoadingVideo, setIsLoadingVideo] = useState(false);
+
+    const updateGoingTime = useCallback((increment: number) => {
+        setCurrentTrack(prev => 
+            prev ? { ...prev, goingTime: prev.goingTime + increment } : null
+        );
+    }, []);
     const loadingRef = useRef(false);
     const playerRef = useRef<any>(null);
 
@@ -41,7 +47,8 @@ export const useYoutubePlayer = () => {
                     name: trackName,
                     artist: artistName,
                     imageUrl,
-                    duration: data.duration
+                    duration: data.duration,
+                    goingTime: 0
                 });
             } else {
                 console.log("Video ID not found");
@@ -61,12 +68,14 @@ export const useYoutubePlayer = () => {
 
 
 
+
     return {
         activeVideoId,
         currentTrack,
         isLoadingVideo,
         playerRef,
         playTrack,
-        stopPlayback
+        stopPlayback,
+        updateGoingTime
     };
 };
