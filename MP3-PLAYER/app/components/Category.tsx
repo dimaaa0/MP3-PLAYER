@@ -8,9 +8,9 @@ import { CategoryType, HeaderProps } from '../types/types'
 export default function Home({ setRecentCategory, setDeleteSearch }: HeaderProps) {
 
     const [categories, setCategories] = useState<CategoryType[]>([
+        { id: 3, label: 'All', active: true },
         { id: 1, label: 'Favorites', active: false },
         { id: 2, label: 'My playlists', active: false },
-        { id: 3, label: 'All', active: true },
         { id: 4, label: 'Rock', active: false },
         { id: 5, label: 'Pop', active: false },
         { id: 6, label: 'Jazz', active: false },
@@ -36,7 +36,7 @@ export default function Home({ setRecentCategory, setDeleteSearch }: HeaderProps
     };
 
     return (
-        <div className="flex font-fr justify-start gap-2 py-4 text-white overflow-x-auto " >
+        <div className="flex font-fr justify-between gap-2 py-4 w-full text-white overflow-x-auto " >
             {categories.map((cat) => (
                 <button
                     key={cat.id}
@@ -44,7 +44,7 @@ export default function Home({ setRecentCategory, setDeleteSearch }: HeaderProps
                         handleClick(cat.id);
                         selectCategory(cat.label);
                     }}
-                    className={`px-8 py-2.5  text-nowrap rounded-lg cursor-pointer transition-colors ${cat.active
+                    className={`w-full py-2.5  text-nowrap rounded-lg cursor-pointer transition-colors ${cat.active
                         ? "bg-[#45474b]"
                         : "bg-[#3c414b80]  hover:bg-[#5a93b6b9]"
                         }`}

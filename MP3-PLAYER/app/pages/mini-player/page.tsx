@@ -28,13 +28,13 @@ export default function MiniPlayer() {
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const formatGoingTime = (goingTime: number): string => {
+    const formatGoingTime = (goingTime: number) => {
         if (goingTime > 10000) {
             goingTime = Math.floor(goingTime / 1000);
-        } return goingTime.toString();
+        } return goingTime;
     }
-    
-     const FormatDurationPlusExtraSeconds = (duration: string | number): string => { //~ IN ORDER TO FIX PROGRESS BAR GOING A BIT FASTER THAN ACTUAL DURATION
+
+    const FormatDurationPlusExtraSeconds = (duration: string | number): string => { //~ IN ORDER TO FIX PROGRESS BAR GOING A BIT FASTER THAN ACTUAL DURATION
         const num = typeof duration === 'string' ? parseInt(duration) : duration;
         if (num == 0) return '0:00';
 
@@ -241,7 +241,7 @@ export default function MiniPlayer() {
                             </div>
                         </div>
                         <div className='flex justify-between mt-1'>
-                            <h3>{formatDuration(track.goingTime)}</h3>
+                            <h3>{track.goingTime + '2'}</h3>
                             <h3>{formatDuration(track.duration)}</h3>
 
                         </div>

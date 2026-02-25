@@ -7,11 +7,10 @@ import { useTrackInfo } from '../hooks/useTrackInfo';
 import { useTopTracks } from '../hooks/useTopTracks';
 import { useSelectByGenre } from '../hooks/useSelectByGenre';
 import { useYoutubePlayer } from '../hooks/useYoutubePlayer';
-import { current } from '@reduxjs/toolkit';
 
 const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const [favorites, setFavorites] = useState<favoritesType[]>([]);
-    const { activeVideoId, currentTrack, isLoadingVideo, playTrack, stopPlayback, updateGoingTime } = useYoutubePlayer(); // МУЗЫКАК КОТОРАЯ ИГРАЕТ СЕЙЧАС
+    const { activeVideoId, currentTrack, isLoadingVideo, playTrack, stopPlayback } = useYoutubePlayer(); // МУЗЫКАК КОТОРАЯ ИГРАЕТ СЕЙЧАС
     const { tracks, loading } = useTopTracks();
     const selectByGenre = useSelectByGenre(recentCategory || 'All');
     const trendData = useTrackInfo(tracks?.tracks?.track || []);
@@ -87,7 +86,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                     artist: currentTrack.artist,
                     duration: currentTrack.duration,
                     ...(currentTrack.imageUrl && { imageUrl: currentTrack.imageUrl }),
-                    goingTime: currentTrack.goingTime,
                     isLoadingVideo: isLoadingVideo,
                     isPlaying: !!activeVideoId,
                     activeVideoId: activeVideoId || null,
@@ -137,17 +135,16 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     useEffect(() => {
         let interval: NodeJS.Timeout;
 
-        if (activeVideoId && currentTrack) {
-            interval = window.setInterval(() => {
-                updateGoingTime(1);
-
+        if (currentTrack) {
+            interval = setInterval(() => {
+                setCountedSeconds((prev) => prev + 1);
             }, 1000);
         }
 
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [activeVideoId, updateGoingTime]);
+    }, [currentTrack]);
 
     useEffect(() => {
         setCountedSeconds(0);
@@ -164,8 +161,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         duration,
         isLoading,
         id,
-        goingTime = '0:00'
-    }: { name: string, artist: string, imageUrl: string, duration: string, isLoading?: boolean, id: number, goingTime?: string }) => {
+        goingTime
+    }: { name: string, artist: string, imageUrl: string, duration: string, isLoading?: boolean, id: number, goingTime: number, goingtime: number | string }) => {
         const active = isFavorite(name, artist);
 
         const isCurrentActive = currentTrack?.name === name && currentTrack?.artist === artist;
@@ -220,7 +217,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                 </div>
                 <div className="details flex items-center gap-2">
                     <h3 className="text-sm tabular-nums mr-2">{duration}</h3>
-                    <h3 className="text-sm tabular-nums mr-2">{isCurrentActive ? currentTrack?.goingTime ? formatDuration(currentTrack.goingTime) : goingTime : goingTime}</h3>
+                    <h3 className="text-sm tabular-nums mr-2">{goingTime}</h3>
                     <Star
                         onClick={(e) => {
                             e.stopPropagation();
@@ -245,11 +242,9 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                     artist: currentTrack.artist,
                     duration: currentTrack.duration,
                     ...(currentTrack.imageUrl && { imageUrl: currentTrack.imageUrl }),
-                    goingTime: currentTrack.goingTime,
                     isLoadingVideo: isLoadingVideo,
                     isPlaying: !!activeVideoId,
-                    activeVideoId: activeVideoId || null,
-                    updateGoingTime: currentTrack.goingTime,
+                    activeVideoId: activeVideoId || null
                 }
             });
         }
@@ -278,7 +273,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                 imageUrl={item.imageUrl}
                                 duration={item.duration}
                                 id={id++}
-                                goingTime={formatDuration(item.goingTime == 0 ? '0:00' : item.goingTime.toString())}
+                                goingTime={formatDuration(countedSeconds == 0 ? '0:00' : countedSeconds.toString())}
                             />
                         ))}
                     </div>
@@ -297,7 +292,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                             duration={searchData.duration[index] || "--:--"}
                             isLoading={searchData.isLoading}
                             id={id++}
-                            goingTime={formatDuration(track.goingTime == 0 ? '0:00' : track.goingTime.toString())}
+                            goingTime={formatDuration(countedSeconds == 0 ? '0:00' : countedSeconds.toString())}
                         />
                     ))}
                 </div>
@@ -320,7 +315,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                     imageUrl={trendData.imageUrl[index]}
                                     duration={formatDuration(track.duration)}
                                     id={id++}
-                                    goingTime="0:00"
+                                    goingTime={formatDuration(countedSeconds == 0 ? '00:00' : countedSeconds.toString())}
                                 />
                             ))}
                         </div>
@@ -368,6 +363,6 @@ export default MusicList;
 //*КНОПКА СЛЕДУЮЩИЙ И ПРЕДЫДУЩИЙ ТРЕК
 
 //В ОБЩЕМ Я ДОБАВИЛ СЮДА ПОДСЧЕТ ID КАЖДОГО ТРЕКА ЧТОБЫ ПРИ ОКОНЧАНИИ ПЕРВОГО
-// ТРЕКА А ТОЧНЕЕ КОГДА ТАЙМЕР ДОЙДЕТ ДО ТОГО МОМЕНТА СКОЛЬКО И СЕКУНД В DURATION, ТО ID БУДЕТ + 1 
+// ТРЕКА А ТОЧНЕЕ КОГДА ТАЙМЕР ДОЙДЕТ ДО ТОГО МОМЕНТА СКОЛЬКО И СЕКУНД В DURATION, ТО ID БУДЕТ + 1
 
 //! сукаа не работает duration в favorites

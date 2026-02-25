@@ -16,8 +16,8 @@ export async function GET(request: Request) {
         const response = await fetch(url);
         if (!response.ok) {
             const errorText = await response.text();
-            console.error("Ошибка сервера:", errorText);
-            throw new Error('Server returned HTML instead of JSON');
+            console.error("YouTube API error:", response.status, errorText);
+            return NextResponse.json({ error: errorText || 'YouTube API error' }, { status: response.status });
         }
         const data = await response.json();
         const videoId = data.items?.[0]?.id?.videoId;

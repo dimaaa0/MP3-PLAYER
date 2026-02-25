@@ -7,20 +7,12 @@ import Link from "next/link"
 import { useUser, useStackApp, UserButton } from "@stackframe/stack";
 import { Track, trackType, HeaderProps } from '../types/types'
 
-
-
-
 const Header = ({ onMusicUpdate, setInputValue, deleteSearch }: HeaderProps) => {
 
     const user = useUser();
     const app = useStackApp();
-
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState([]);
-
-
-
-
     const [listVisibility, setListVisibility] = useState(false);
 
     useEffect(() => {
@@ -120,20 +112,20 @@ const Header = ({ onMusicUpdate, setInputValue, deleteSearch }: HeaderProps) => 
 
                         type="text"
                         placeholder="Search tracks..."
-                        className="w-full z-999 bg-[#0000003b] font-fr text-[18px] text-white text-sm rounded-xl border py-2 pl-10 pr-12 outline-none transition-colors placeholder:text-white"
+                        className="w-full z-888 bg-[#0000003b] font-fr text-[18px] text-white text-sm rounded-xl border py-2 pl-10 pr-12 outline-none transition-colors placeholder:text-white"
                     />
                     <button
                         onMouseEnter={handleChangeToVisibility}
                         onMouseLeave={handleChangeToInvisibility}
                         onClick={handleClearing}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <X className={`w-5 h-5 cursor-pointer ${visibility ? 'opacity-100' : 'opacity-0'}`} />
+                        className="absolute z-999 right-3 top-1/2 transform -translate-y-1/2">
+                        <X className={`w-5  h-5 cursor-pointer ${visibility ? 'display-block' : 'display-none'}`} />
                     </button>
-                    <div>
+                    {/* <div>
                         {searchResults.length > 0 && searchTerm !== '' && (
                             <div className="relative">
                                 <div className="z-[999] absolute top-full left-0 w-full bg-[#1a1a1a] border border-gray-700 rounded-xl mt-2 shadow-2xl overflow-hidden">
-                                    <div className={`transition-all duration-500 ease-in-out ${listVisibility ? 'max-h-0 opacity-0' : 'max-h-80 opacity-100'}`}>
+                                    <div className={`transition-all duration-500 ease-in-out ${listVisibility ? 'max-h-0 display-none' : 'max-h-80 display-block'}`}>
                                         <div className="max-h-60 overflow-y-auto hide-scrollbar">
                                             {searchResults.map((track: trackType, index) => (
                                                 <div key={index} className="px-4 py-2 hover:bg-white/10 cursor-pointer flex flex-col border-b border-white/5 last:border-none">
@@ -153,7 +145,7 @@ const Header = ({ onMusicUpdate, setInputValue, deleteSearch }: HeaderProps) => 
                                 </div>
                             </div>
                         )}
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>
