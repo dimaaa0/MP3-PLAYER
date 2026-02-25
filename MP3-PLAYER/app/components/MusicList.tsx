@@ -278,7 +278,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                 imageUrl={item.imageUrl}
                                 duration={item.duration}
                                 id={id++}
-                                goingTime={formatDuration(item.goingTime == 0 ? '0:00' : item.goingTime.toString())}
+                                goingTime="0:00"
                             />
                         ))}
                     </div>
@@ -297,7 +297,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                             duration={searchData.duration[index] || "--:--"}
                             isLoading={searchData.isLoading}
                             id={id++}
-                            goingTime={formatDuration(track.goingTime == 0 ? '0:00' : track.goingTime.toString())}
+                            goingTime="0:00"
                         />
                     ))}
                 </div>
@@ -335,19 +335,13 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                     duration={formatDuration(track.duration)}
                                     isLoading={genreData.isLoading}
                                     id={id++}
-                                    goingTime={formatDuration(countedSeconds == 0 ? '00:00' : countedSeconds.toString())}
+                                    goingTime="0:00"
                                 />
                             ))}
                         </div>
                     )}
                 </div>
             )}
-
-
-
-            <button onClick={handlePopOut} className="btn-mini">
-                Вытащить плеер
-            </button>
 
             {activeVideoId && (
                 <div className="hidden pointer-events-none opacity-100">
@@ -366,8 +360,3 @@ export default MusicList;
 //^ ПРОИГРОВКА СЛЕДУЮЩЕГО ТРЕКА ПО ЗАВЕРШЕНИЮ ТЕКУЩЕГО (МОЖЕТ БЫТЬ СЛОЖНО ИЗ-ЗА YOUTUBE API)
 //? РЕАЛИЗОВАТЬ ВОЗМОЖНОСТЬ ПЕРЕТАСКИВАНИЯ ТРЕКОВ ДЛЯ ИЗМЕНЕНИЯ ИХ ПОРЯДКА В СПИСКЕ
 //*КНОПКА СЛЕДУЮЩИЙ И ПРЕДЫДУЩИЙ ТРЕК
-
-//В ОБЩЕМ Я ДОБАВИЛ СЮДА ПОДСЧЕТ ID КАЖДОГО ТРЕКА ЧТОБЫ ПРИ ОКОНЧАНИИ ПЕРВОГО
-// ТРЕКА А ТОЧНЕЕ КОГДА ТАЙМЕР ДОЙДЕТ ДО ТОГО МОМЕНТА СКОЛЬКО И СЕКУНД В DURATION, ТО ID БУДЕТ + 1 
-
-//! сукаа не работает duration в favorites

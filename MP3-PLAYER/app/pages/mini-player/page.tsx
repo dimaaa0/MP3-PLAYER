@@ -33,8 +33,8 @@ export default function MiniPlayer() {
             goingTime = Math.floor(goingTime / 1000);
         } return goingTime.toString();
     }
-    
-     const FormatDurationPlusExtraSeconds = (duration: string | number): string => { //~ IN ORDER TO FIX PROGRESS BAR GOING A BIT FASTER THAN ACTUAL DURATION
+
+    const FormatDurationPlusExtraSeconds = (duration: string | number): string => { //~ IN ORDER TO FIX PROGRESS BAR GOING A BIT FASTER THAN ACTUAL DURATION
         const num = typeof duration === 'string' ? parseInt(duration) : duration;
         if (num == 0) return '0:00';
 
