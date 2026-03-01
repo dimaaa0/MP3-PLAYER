@@ -4,6 +4,7 @@ import { Play, Pause, SkipBack, SkipForward, Loader2, Star, HeartOff } from 'luc
 import { useYoutubePlayer } from '../../hooks/useYoutubePlayer';
 import { setTimeout } from 'node:timers/promises';
 
+
 export default function MiniPlayer() {
     const [track, setTrack] = useState<any>(null);
     const [previousTrack, setPreviousTrack] = useState<any>(null);
@@ -235,13 +236,13 @@ export default function MiniPlayer() {
                         <div className='w-full h-1 bg-white/40 rounded-full mt-4'>
                             <div
                                 className='h-full bg-white rounded-full flex justify-end items-center'
-                                style={{ width: `${(track.goingTime / track.duration) * 100}%` }}
+                                style={{ maxWidth: '100%', width: `${(track.goingTime / formatGoingTime(track.duration)) * 100}%` }}
                             >
                                 <div className='progress-bar-tracker w-2.5 h-2.5 bg-white rounded-2xl absolute'></div>
                             </div>
                         </div>
                         <div className='flex justify-between mt-1'>
-                            <h3>{track.goingTime + '2'}</h3>
+                            <h3>{formatDuration(track.goingTime)}</h3>
                             <h3>{formatDuration(track.duration)}</h3>
 
                         </div>
