@@ -66,3 +66,14 @@ export interface PlayingTrack {
     imageUrl?: string;
     goingTime: number;
 }
+
+export interface playlistData {
+    name: string;
+    tracksCount: number;
+    tracks: Track[];
+}
+
+export interface Playlists {
+    tracksCount: number;
+    playlists: playlistData[];
+}

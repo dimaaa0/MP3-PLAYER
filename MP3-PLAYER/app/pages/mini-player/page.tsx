@@ -59,19 +59,21 @@ export default function MiniPlayer() {
                 if (event.data.track) {
                     setTrack(event.data.track);
                     setPreviousTrack(event.data.track);
-
                 } else {
-                    setTrack(previousTrack);
+                    // when the main window stops playback, clear our state
+                    setTrack(null);
                 }
             } else if (event.data.type === 'PLAY_TRACK') {
                 const t = event.data.track;
                 if (t?.name && t?.artist) {
                     playTrack(t.name, t.artist, t.imageUrl);
                 }
+            } else if (event.data.type === 'STOP_TRACK') {
+                // update local state when someone else stops
+                setTrack((prev: any) => prev ? { ...prev, isPlaying: false } : prev);
             } else if (event.data.type === 'FAVORITES_UPDATE') {
                 console.log('FAVORITES_UPDATE received:', event.data.favorites);
                 setFavorites(event.data.favorites);
-
             }
         };
 
@@ -177,13 +179,7 @@ export default function MiniPlayer() {
                                 {track.isLoadingVideo ? (
                                     <Loader2 className="w-8 h-8 duration-300 animate-spin" />
                                 ) : (
-                                    <Play className="w-8 h-8"
-                                        onClick={() => {
-                                            setTrack((prev: any) => ({ ...prev, isPlaying: true, isLoadingVideo: true }));
-                                            playTrack(track.name, track.artist, track.imageUrl);
-                                            channelRef.current?.postMessage({ type: 'PLAY_TRACK', track: { name: track.name, artist: track.artist, imageUrl: track.imageUrl } });
-                                        }}
-                                    />
+                                    <Play className="w-8 h-8" />
                                 )}
                             </button>
                         ) : (

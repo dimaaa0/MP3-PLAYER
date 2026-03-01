@@ -1,7 +1,7 @@
 "use client";
 
-import { Star, Settings, Play, Pause, Loader2 } from 'lucide-react'; // Добавил иконки
-import { Track, favoritesType, MusicListProps } from '../types/types';
+import { Star, Settings, Play, Pause, Loader2, Trash2 } from 'lucide-react'; // Добавил иконки
+import { Track, favoritesType, MusicListProps, Playlists, playlistData } from '../types/types';
 import { useState, useEffect, useCallback } from 'react';
 import { useTrackInfo } from '../hooks/useTrackInfo';
 import { useTopTracks } from '../hooks/useTopTracks';
@@ -18,6 +18,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const searchData = useTrackInfo(music || []);
     const genreData = useTrackInfo(selectByGenre.data?.tracks || []);
     const [countedSeconds, setCountedSeconds] = useState(0);
+    const [playlistData, setPlaylistData] = useState<playlistData[]>([]);
+    const [playlists, setPlaylists] = useState<Playlists[]>([1, 2, 3]);
 
     let id = 0 // Setted id
 
@@ -103,10 +105,23 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         }
     }, [currentTrack, isLoadingVideo, activeVideoId]);
 
+    // helper to broadcast stop from anywhere in this component
+    const broadcastStop = useCallback(() => {
+        const ch = new BroadcastChannel('music_player_channel');
+        ch.postMessage({ type: 'STOP_TRACK', track: currentTrack ? { name: currentTrack.name, artist: currentTrack.artist } : null });
+        ch.close();
+    }, [currentTrack]);
+
     useEffect(() => {
         const channel = new BroadcastChannel('music_player_channel');
 
+        // send initial state when component mounts
         broadcastTrackUpdate(channel);
+
+        if (!currentTrack) {
+            // notify listeners that playback has stopped
+            channel.postMessage({ type: 'STOP_TRACK' });
+        }
 
         channel.onmessage = (event) => {
             if (event.data.type === 'REQUEST_CURRENT_TRACK') {
@@ -124,7 +139,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         };
 
         return () => channel.close();
-    }, [currentTrack, isLoadingVideo, broadcastTrackUpdate]);
+    }, [currentTrack, isLoadingVideo, broadcastTrackUpdate, broadcastStop]);
 
     const handlePopOut = () => {
         const width = 400;
@@ -166,7 +181,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         setCountedSeconds(0);
     }, [currentTrack?.name]);
 
-    
+
 
 
     const TrackRow = ({
@@ -200,7 +215,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                         <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
                                     ) : isCurrentActive ? (
                                         <Pause className="w-6 h-6 text-white fill-white z-10"
-                                            onClick={(e) => { e.stopPropagation(); stopPlayback(); }} />
+                                            onClick={(e) => { e.stopPropagation(); stopPlayback(); broadcastStop(); }} />
                                     ) : (
                                         <Play className="w-6 h-6 text-white fill-white"
                                             onClick={(e) => { e.stopPropagation(); playTrack(name, artist, imageUrl); }} />
@@ -215,7 +230,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                         <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
                                     ) : isCurrentActive ? (
                                         <Pause className="w-6 h-6 text-white fill-white z-10"
-                                            onClick={(e) => { e.stopPropagation(); stopPlayback(); }} />
+                                            onClick={(e) => { e.stopPropagation(); stopPlayback(); broadcastStop(); }} />
                                     ) : (
                                         <Play className="w-6 h-6 text-white fill-white"
                                             onClick={(e) => { e.stopPropagation(); playTrack(name, artist, imageUrl); }} />
@@ -336,24 +351,76 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                 />
                             ))}
                         </div>
-                    ) : (
-                        <div className="flex flex-col gap-2">
-                            {selectByGenre.data?.tracks.map((track: Track, index: number) => (
-                                <TrackRow
-                                    key={index}
-                                    name={track.name}
-                                    artist={typeof track.artist === 'string' ? track.artist : track.artist.name}
-                                    imageUrl={genreData.imageUrl[index]}
-                                    duration={formatDuration(track.duration)}
-                                    isLoading={genreData.isLoading}
-                                    id={id++}
-                                    goingTime="0:00"
-                                />
-                            ))}
+
+                    ) :
+
+                        recentCategory !== 'All' && recentCategory !== 'My playlists' && (
+
+                            <div className="flex flex-col gap-2">
+                                {selectByGenre.data?.tracks.map((track: Track, index: number) => (
+                                    <TrackRow
+                                        key={index}
+                                        name={track.name}
+                                        artist={typeof track.artist === 'string' ? track.artist : track.artist.name}
+                                        imageUrl={genreData.imageUrl[index]}
+                                        duration={formatDuration(track.duration)}
+                                        isLoading={genreData.isLoading}
+                                        id={id++}
+                                        goingTime="0:00"
+                                    />
+                                ))}
+                            </div>
+                        )}
+
+                    {recentCategory === 'My playlists' && playlists.length > 0 && !loading ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {playlists.length > 0 ? (
+                                playlists.map((playlist, index) => (
+                                    <div key={index} className="bg-[#1e1e1e] hover:bg-[#2a2a2a] transition-colors rounded-xl p-4 flex items-center gap-4 group cursor-pointer">
+                                        <div className="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden">
+                                            <img
+                                                src={playlist.imageUrl || "/default-cover.jpg"}
+                                                alt={playlist.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+
+                                        <div className="flex flex-col justify-between flex-grow h-full py-1">
+                                            <div>
+                                                <h2 className="text-white font-bold text-lg line-clamp-1">{playlist.name}</h2>
+                                                <p className="text-gray-400 text-sm">{playlist.tracksCount || 0} tracks</p>
+                                            </div>
+
+                                            <div className="flex items-center gap-3 mt-2">
+                                                <button className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all">
+                                                    <Play className="w-4 h-4 text-white fill-white" />
+                                                </button>
+                                                <div className="flex gap-2 ml-auto">
+                                                    <button className="p-1.5 text-gray-500 hover:text-white transition-colors">
+                                                        <Settings className="w-4 h-4" />
+                                                    </button>
+                                                    <button className="p-1.5 text-gray-500 hover:text-red-500 transition-colors">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="col-span-full py-20 text-center text-gray-500">
+                                    No playlists found. Create your first one!
+                                </div>
+                            )}
                         </div>
+                    ) : (
+                        <div className="py-8 text-center text-gray-400">No tracks found for this category</div>
                     )}
+
                 </div>
             )}
+
+
 
             {activeVideoId && (
                 <div className="hidden pointer-events-none opacity-100">
@@ -363,7 +430,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                     ></iframe>
                 </div>
             )}
-        </div>
+
+        </div >
     );
 };
 export default MusicList;
@@ -371,4 +439,6 @@ export default MusicList;
 //& PROGRESS BAR
 //^ ПРОИГРОВКА СЛЕДУЮЩЕГО ТРЕКА ПО ЗАВЕРШЕНИЮ ТЕКУЩЕГО (МОЖЕТ БЫТЬ СЛОЖНО ИЗ-ЗА YOUTUBE API)
 //? РЕАЛИЗОВАТЬ ВОЗМОЖНОСТЬ ПЕРЕТАСКИВАНИЯ ТРЕКОВ ДЛЯ ИЗМЕНЕНИЯ ИХ ПОРЯДКА В СПИСКЕ
-//*КНОПКА СЛЕДУЮЩИЙ И ПРЕДЫДУЩИЙ ТРЕК
+//* КНОПКА СЛЕДУЮЩИЙ И ПРЕДЫДУЩИЙ ТРЕК
+
+//! РАЗОБРАТЬСЯ С PLAYLIST ЧАСТЬЮ И ТИПАМИ ПОЛОМАНЫМИ 
