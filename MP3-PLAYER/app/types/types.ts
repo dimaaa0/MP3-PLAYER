@@ -17,6 +17,16 @@ export interface Track {
     goingTime?: number;
 }
 
+export interface Playlist {
+    id: number;
+    name: string;
+    tracks: Track[];
+}
+
+export interface MusicData {
+    playlists: Playlist[];
+}
+
 export interface favoritesType {
     name: string;
     artist: {

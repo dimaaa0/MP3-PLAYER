@@ -1,7 +1,7 @@
 "use client";
 
 import { Star, Settings, Play, Pause, Loader2 } from 'lucide-react'; // Добавил иконки
-import { Track, favoritesType, MusicListProps } from '../types/types';
+import { Track, favoritesType, MusicListProps, MusicData, Playlist } from '../types/types';
 import { useState, useEffect, useCallback } from 'react';
 import { useTrackInfo } from '../hooks/useTrackInfo';
 import { useTopTracks } from '../hooks/useTopTracks';
@@ -11,6 +11,8 @@ import { current } from '@reduxjs/toolkit';
 
 const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const [favorites, setFavorites] = useState<favoritesType[]>([]);
+    const [playlistFolder, setPlaylistFolder] = useState<MusicData[]>([]);
+    const [playlist, setPlaylist] = useState<Playlist[]>([]);
     const { activeVideoId, currentTrack, isLoadingVideo, playTrack, stopPlayback, updateGoingTime } = useYoutubePlayer(); // МУЗЫКАК КОТОРАЯ ИГРАЕТ СЕЙЧАС
     const { tracks, loading } = useTopTracks();
     const selectByGenre = useSelectByGenre(recentCategory || 'All');
@@ -153,9 +155,9 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         setCountedSeconds(0);
     }, [currentTrack?.name]);
 
-
-
-
+    const addToPlaylist = (trackName: string, artistName: string, imageUrl: string, duration: string) => {
+        console.log(`Название трека: ${trackName}, Имя артиста: ${artistName}`);
+    }
 
     const TrackRow = ({
         name,
@@ -176,7 +178,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                 className={`cursor-pointer card rounded-lg flex justify-between w-full p-3.5 transition-colors ${isCurrentActive ? 'bg-[#7776766d] ring-1 ring-blue-500' : 'bg-[#7776763b] hover:bg-[#7776765d]'
                     } text-white`}
             >
-                <div className="title flex gap-6 items-center">
+                <div className="title opacity flex gap-6 items-center">
                     <div className="relative w-16 h-16 shrink-0 flex items-center justify-center bg-gray-700 rounded-md overflow-hidden group">
                         {isLoading ? (
                             <div className="w-6 h-6 border-2 border-t-blue-500 rounded-full animate-spin"></div>
@@ -228,7 +230,12 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                         }}
                         className={`w-5 h-5 transition-all ${active ? 'text-yellow-400 fill-yellow-400 scale-110' : 'text-gray-400'}`}
                     />
-                    <Settings className="w-5 h-5 text-gray-400 hover:text-white transition-colors" />
+                    <Settings className="w-5 h-5 z-999 text-gray-400 hover:text-white transition-colors"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            addToPlaylist(name, artist, imageUrl, duration);
+                        }}
+                    />
                 </div>
             </div>
         );
@@ -265,7 +272,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     }, [currentTrack, isLoadingVideo, activeVideoId]);
 
     return (
-        <div className='flex flex-col gap-3 pb-24'>
+        <div className='flex flex-col gap-3 pb-4'>
 
             {recentCategory === 'Favorites' ? (
                 favorites.length > 0 ? (
@@ -301,62 +308,127 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                         />
                     ))}
                 </div>
-            ) : (
-                <div className="All">
-                    {(loading || trendData.isLoading) ? (
-                        <div className="flex flex-col items-center py-8 gap-4">
-                            <div className="relative w-12 h-12">
-                                <div className="absolute inset-0 rounded-full border-4 border-t-purple-500 border-l-blue-500 animate-spin"></div>
+            ) : recentCategory === 'My playlists' ? ( //~ PLAYLIST PART HIGHLIGHTER
+                <>
+                    {
+                        playlistFolder.length > 0 ? (
+                            <h1>there is something here</h1>
+                        ) : (
+                            <div className="py-8 text-center text-gray-400">
+                                No playlists created yet
                             </div>
-                            <span className="text-xs font-medium tracking-widest text-gray-500 uppercase animate-pulse">Loading Tracks</span>
-                        </div>
-                    ) : recentCategory === 'All' ? (
-                        <div className="flex flex-col gap-2">
-                            {tracks?.tracks?.track.map((track: Track, index: number) => (
-                                <TrackRow
-                                    key={index}
-                                    name={track.name}
-                                    artist={track.artist.name}
-                                    imageUrl={trendData.imageUrl[index]}
-                                    duration={formatDuration(track.duration)}
-                                    id={id++}
-                                    goingTime="0:00"
-                                />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="flex flex-col gap-2">
-                            {selectByGenre.data?.tracks.map((track: Track, index: number) => (
-                                <TrackRow
-                                    key={index}
-                                    name={track.name}
-                                    artist={typeof track.artist === 'string' ? track.artist : track.artist.name}
-                                    imageUrl={genreData.imageUrl[index]}
-                                    duration={formatDuration(track.duration)}
-                                    isLoading={genreData.isLoading}
-                                    id={id++}
-                                    goingTime="0:00"
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
+                        )
+                    }
+                </>
+            ) :
+                (
+                    <div className="ALL">
+                        {(loading || trendData.isLoading) ? (
+                            <div className="flex flex-col items-center py-8 gap-4">
+                                <div className="relative w-12 h-12">
+                                    <div className="absolute inset-0 rounded-full border-4 border-t-purple-500 border-l-blue-500 animate-spin"></div>
+                                </div>
+                                <span className="text-xs font-medium tracking-widest text-gray-500 uppercase animate-pulse">Loading Tracks</span>
+                            </div>
+                        ) : recentCategory === 'All' ? (
+                            <div className="flex flex-col gap-2">
+                                {tracks?.tracks?.track.map((track: Track, index: number) => (
+                                    <TrackRow
+                                        key={index}
+                                        name={track.name}
+                                        artist={track.artist.name}
+                                        imageUrl={trendData.imageUrl[index]}
+                                        duration={formatDuration(track.duration)}
+                                        id={id++}
+                                        goingTime="0:00"
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="GENRE flex flex-col gap-2">
+                                {selectByGenre.data?.tracks.map((track: Track, index: number) => (
+                                    <TrackRow
+                                        key={index}
+                                        name={track.name}
+                                        artist={typeof track.artist === 'string' ? track.artist : track.artist.name}
+                                        imageUrl={genreData.imageUrl[index]}
+                                        duration={formatDuration(track.duration)}
+                                        isLoading={genreData.isLoading}
+                                        id={id++}
+                                        goingTime="0:00"
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )
+            }
 
-            {activeVideoId && (
-                <div className="hidden pointer-events-none opacity-100">
-                    <iframe
-                        src={`https://www.youtube.com/embed/${activeVideoId}?autoplay=1`}
-                        allow="autoplay"
-                    ></iframe>
-                </div>
-            )}
-        </div>
+            {
+                activeVideoId && (
+                    <div className="hidden pointer-events-none opacity-100">
+                        <iframe
+                            src={`https://www.youtube.com/embed/${activeVideoId}?autoplay=1`}
+                            allow="autoplay"
+                        ></iframe>
+                    </div>
+                )
+            }
+        </div >
     );
 };
 export default MusicList;
 
-//& PROGRESS BAR
 //^ ПРОИГРОВКА СЛЕДУЮЩЕГО ТРЕКА ПО ЗАВЕРШЕНИЮ ТЕКУЩЕГО (МОЖЕТ БЫТЬ СЛОЖНО ИЗ-ЗА YOUTUBE API)
 //? РЕАЛИЗОВАТЬ ВОЗМОЖНОСТЬ ПЕРЕТАСКИВАНИЯ ТРЕКОВ ДЛЯ ИЗМЕНЕНИЯ ИХ ПОРЯДКА В СПИСКЕ
 //*КНОПКА СЛЕДУЮЩИЙ И ПРЕДЫДУЩИЙ ТРЕК
+//! СДЕЛАТЬ ФУНКЦИЯ ДЛЯ ДОБАВЛЕНИЯ ТРЕКА В ПЛЕЙЛИСТ И ОТДЕЛЬНЫЙ КОМПОНЕНТ ДЛЯ ПЛЕЙЛИСТОВ, ГДЕ МОЖНО БУДЕТ ИХ СОЗДАВАТЬ И УДАЛЯТЬ
+
+
+
+// const PlaylistCard = ({ name, trackCount, imageUrl }: PlaylistCardProps) => (
+//   <div className="bg-[#1a1a1a] p-4 rounded-xl hover:bg-[#252525] transition-all group cursor-pointer">
+//     <div className="flex gap-4 items-center">
+//       {/* Обложка */}
+//       <img 
+//         src={imageUrl} 
+//         alt={name} 
+//         className="w-24 h-24 rounded-lg object-cover shadow-lg"
+//       />
+      
+//       {/* Инфо */}
+//       <div className="flex-1">
+//         <h3 className="text-white font-bold text-lg truncate">{name}</h3>
+//         <p className="text-gray-400 text-sm">{trackCount} tracks</p>
+        
+//         {/* Кнопки управления (как на дизайне) */}
+//         <div className="flex gap-3 mt-3">
+//           <button className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white">
+//             <Play size={16} fill="white" />
+//           </button>
+//           <button className="p-2 text-gray-400 hover:text-white">
+//             <Pencil size={16} />
+//           </button>
+//           <button className="p-2 text-gray-400 hover:text-red-500">
+//             <Trash2 size={16} />
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   </div>
+// );
+
+// export const PlaylistGrid = ({ playlists }: { playlists: any[] }) => {
+//   return (
+//     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+//       {playlists.map((playlist) => (
+//         <PlaylistCard 
+//           key={playlist.id}
+//           name={playlist.name}
+//           trackCount={playlist.tracks.length}
+//           imageUrl={playlist.cover || 'https://via.placeholder.com/150'}
+//         />
+//       ))}
+//     </div>
+//   );
+// };
