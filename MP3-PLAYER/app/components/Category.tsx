@@ -36,7 +36,7 @@ export default function Home({ setRecentCategory, setDeleteSearch }: HeaderProps
     };
 
     return (
-        <div className="flex font-fr justify-between gap-2 py-4 w-full text-white overflow-x-auto " >
+        <div className="flex font-fr  justify-between gap-2 py-4 w-full text-white overflow-x-auto " >
             {categories.map((cat) => (
                 <button
                     key={cat.id}
@@ -44,7 +44,7 @@ export default function Home({ setRecentCategory, setDeleteSearch }: HeaderProps
                         handleClick(cat.id);
                         selectCategory(cat.label);
                     }}
-                    className={`w-full py-2.5  text-nowrap rounded-lg cursor-pointer transition-colors ${cat.active
+                    className={`w-full py-2.5 px-5 min-w-140% text-nowrap rounded-lg cursor-pointer transition-colors ${cat.active
                         ? "bg-[#45474b]"
                         : "bg-[#3c414b80]  hover:bg-[#5a93b6b9]"
                         }`}

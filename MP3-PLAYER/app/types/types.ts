@@ -5,28 +5,8 @@ export interface CategoryType {
 }
 
 
-export interface Track {
-    name: string;
-    artist: {
-        name: string;
-    };
-    duration: string;
-    image?: { size: string, '#text': string }[];
-    url: string;
-    mbid?: string;
-    goingTime?: number;
-}
 
-export interface favoritesType {
-    name: string;
-    artist: {
-        name: string;
-    };
-    imageUrl: string;
-    duration: string;
-    genre: string;
-    goingTime: number;
-}
+
 
 export interface TopTracksResponseType {
     tracks: {
@@ -42,6 +22,16 @@ export interface UseTrackToReturn {
     genre: string[];
     isLoading: boolean;
 }
+    export interface favoritesType {
+        name: string;
+        artist: {
+            name: string;
+        };
+        imageUrl: string;
+        duration: string;
+        genre: string;
+        goingTime: number;
+    }
 
 export interface MusicListProps {
     music: Track[];
@@ -59,6 +49,18 @@ export interface HeaderProps {
     deleteSearch: (value: string) => void;
 }
 
+export interface Track {
+    name: string;
+    artist: {
+        name: string;
+    };
+    duration: string;
+    image?: { size: string, '#text': string }[];
+    url: string;
+    mbid?: string;
+    goingTime?: number;
+}
+
 export interface PlayingTrack {
     name: string;
     artist: string;
@@ -67,13 +69,15 @@ export interface PlayingTrack {
     goingTime: number;
 }
 
-export interface playlistData {
+// Represents a single playlist; tracksCount is derived via `tracks.length`.
+export interface Playlist {
+    id?: string | number;
     name: string;
-    tracksCount: number;
     tracks: Track[];
+    imageUrl?: string;
 }
 
-export interface Playlists {
-    tracksCount: number;
-    playlists: playlistData[];
+// Collection of playlists for APIs or app state
+export interface PlaylistCollection {
+    playlists: Playlist[];
 }
