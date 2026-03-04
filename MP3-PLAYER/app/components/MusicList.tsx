@@ -1,7 +1,7 @@
 "use client";
 
-import { Star, Settings, Play, Pause, Loader2 } from 'lucide-react'; // Добавил иконки
-import { Track, favoritesType, MusicListProps, MusicData, Playlist } from '../types/types';
+import { Star, Settings, Play, Pause, Loader2, Trash2, AlignVerticalJustifyStartIcon } from 'lucide-react'; // Добавил иконки
+import { Track, favoritesType, MusicListProps, Playlist, PlaylistCollection } from '../types/types';
 import { useState, useEffect, useCallback } from 'react';
 import { useTrackInfo } from '../hooks/useTrackInfo';
 import { useTopTracks } from '../hooks/useTopTracks';
@@ -19,7 +19,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const trendData = useTrackInfo(tracks?.tracks?.track || []);
     const searchData = useTrackInfo(music || []);
     const genreData = useTrackInfo(selectByGenre.data?.tracks || []);
-    const [countedSeconds, setCountedSeconds] = useState(0);
+    const [playlists, setPlaylists] = useState<Playlist[]>([]);
+    const [playlistPopup, setPlaylistPopup] = useState(false);
 
     let id = 0 // Setted id
 
@@ -36,6 +37,12 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         const secs = (seconds) % 60;
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
+
+    const formatGoingTime = (goingTime: number) => {
+        if (goingTime > 10000) {
+            goingTime = Math.floor(goingTime / 1000);
+        } return goingTime;
+    }
 
     const FormatDurationPlusExtraSeconds = (duration: string | number): string => { //~ IN ORDER TO FIX PROGRESS BAR GOING A BIT FASTER THAN ACTUAL DURATION
         const num = typeof duration === 'string' ? parseInt(duration) : duration;
@@ -99,10 +106,23 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         }
     }, [currentTrack, isLoadingVideo, activeVideoId]);
 
+    // helper to broadcast stop from anywhere in this component
+    const broadcastStop = useCallback(() => {
+        const ch = new BroadcastChannel('music_player_channel');
+        ch.postMessage({ type: 'STOP_TRACK', track: currentTrack ? { name: currentTrack.name, artist: currentTrack.artist } : null });
+        ch.close();
+    }, [currentTrack]);
+
     useEffect(() => {
         const channel = new BroadcastChannel('music_player_channel');
 
+        // send initial state when component mounts
         broadcastTrackUpdate(channel);
+
+        if (!currentTrack) {
+            // notify listeners that playback has stopped
+            channel.postMessage({ type: 'STOP_TRACK' });
+        }
 
         channel.onmessage = (event) => {
             if (event.data.type === 'REQUEST_CURRENT_TRACK') {
@@ -120,7 +140,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         };
 
         return () => channel.close();
-    }, [currentTrack, isLoadingVideo, broadcastTrackUpdate]);
+    }, [currentTrack, isLoadingVideo, broadcastTrackUpdate, broadcastStop]);
 
     const handlePopOut = () => {
         const width = 400;
@@ -141,44 +161,58 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
         if (activeVideoId && currentTrack) {
             interval = window.setInterval(() => {
-                updateGoingTime(1);
+                const durationNormalized = formatGoingTime(currentTrack.duration);
+                const going = typeof currentTrack.goingTime === 'string' ? parseInt(currentTrack.goingTime) : currentTrack.goingTime;
 
+                if (currentTrack?.duration && !isNaN(Number(durationNormalized)) && !isNaN(Number(going)) && going >= durationNormalized) {
+                    stopPlayback();
+                } else {
+                    updateGoingTime(1);
+                }
             }, 1000);
         }
 
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [activeVideoId, updateGoingTime]);
+    }, [activeVideoId, updateGoingTime, currentTrack?.goingTime, currentTrack?.duration, currentTrack?.name]);
 
-    useEffect(() => {
-        setCountedSeconds(0);
-    }, [currentTrack?.name]);
-
-    const addToPlaylist = (trackName: string, artistName: string, imageUrl: string, duration: string) => {
-        console.log(`Название трека: ${trackName}, Имя артиста: ${artistName}`);
+    const openAddToPlaylistPopup = () => {
+        setPlaylistPopup(true);
     }
 
-    const TrackRow = ({
-        name,
-        artist,
-        imageUrl,
-        duration,
-        isLoading,
-        id,
-        goingTime = '0:00'
-    }: { name: string, artist: string, imageUrl: string, duration: string, isLoading?: boolean, id: number, goingTime?: string }) => {
+    const addToPlaylist = (playlistId: number, name: string, imageUrl: string, duration: string) => {
+        // debug helper: print out current playlists state and the one we're trying to use
+        console.log('all playlists state:', playlists);
+    }
+
+    const TrackRow = (
+        {
+            name,
+            artist,
+            imageUrl,
+            duration,
+            isLoading,
+            id,
+            goingTime = '0:00'
+        }: { name: string, artist: string, imageUrl: string, duration: string, isLoading?: boolean, id: number, goingTime?: string }) => {
         const active = isFavorite(name, artist);
 
         const isCurrentActive = currentTrack?.name === name && currentTrack?.artist === artist;
 
         return (
             <div
-                onClick={() => handlePopOut()}
+
                 className={`cursor-pointer card rounded-lg flex justify-between w-full p-3.5 transition-colors ${isCurrentActive ? 'bg-[#7776766d] ring-1 ring-blue-500' : 'bg-[#7776763b] hover:bg-[#7776765d]'
                     } text-white`}
+                     onClick={(e) => {
+                        e.stopPropagation();
+                        handlePopOut();
+                    }}
             >
-                <div className="title opacity flex gap-6 items-center">
+                <div className="title opacity  flex gap-6 items-center"
+                   
+                >
                     <div className="relative w-16 h-16 shrink-0 flex items-center justify-center bg-gray-700 rounded-md overflow-hidden group">
                         {isLoading ? (
                             <div className="w-6 h-6 border-2 border-t-blue-500 rounded-full animate-spin"></div>
@@ -190,7 +224,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                         <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
                                     ) : isCurrentActive ? (
                                         <Pause className="w-6 h-6 text-white fill-white z-10"
-                                            onClick={(e) => { e.stopPropagation(); stopPlayback(); }} />
+                                            onClick={(e) => { e.stopPropagation(); stopPlayback(); broadcastStop(); }} />
                                     ) : (
                                         <Play className="w-6 h-6 text-white fill-white"
                                             onClick={(e) => { e.stopPropagation(); playTrack(name, artist, imageUrl); }} />
@@ -205,7 +239,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                         <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
                                     ) : isCurrentActive ? (
                                         <Pause className="w-6 h-6 text-white fill-white z-10"
-                                            onClick={(e) => { e.stopPropagation(); stopPlayback(); }} />
+                                            onClick={(e) => { e.stopPropagation(); stopPlayback(); broadcastStop(); }} />
                                     ) : (
                                         <Play className="w-6 h-6 text-white fill-white"
                                             onClick={(e) => { e.stopPropagation(); playTrack(name, artist, imageUrl); }} />
@@ -230,12 +264,13 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                         }}
                         className={`w-5 h-5 transition-all ${active ? 'text-yellow-400 fill-yellow-400 scale-110' : 'text-gray-400'}`}
                     />
-                    <Settings className="w-5 h-5 z-999 text-gray-400 hover:text-white transition-colors"
+                    <Settings
                         onClick={(e) => {
                             e.stopPropagation();
-                            addToPlaylist(name, artist, imageUrl, duration);
+                            addToPlaylist(id, name, imageUrl, duration);
+                            openAddToPlaylistPopup();
                         }}
-                    />
+                        className="w-5 h-5 text-gray-400 hover:text-white transition-colors" />
                 </div>
             </div>
         );
@@ -308,44 +343,34 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                         />
                     ))}
                 </div>
-            ) : recentCategory === 'My playlists' ? ( //~ PLAYLIST PART HIGHLIGHTER
-                <>
-                    {
-                        playlistFolder.length > 0 ? (
-                            <h1>there is something here</h1>
-                        ) : (
-                            <div className="py-8 text-center text-gray-400">
-                                No playlists created yet
+            ) : (
+                <div className="All">
+                    {(loading || trendData.isLoading && recentCategory !== 'My playlists' && recentCategory !== 'Favorites') ? (
+                        <div className="flex flex-col items-center py-8 gap-4">
+                            <div className="relative w-12 h-12">
+                                <div className="absolute inset-0 rounded-full border-4 border-t-purple-500 border-l-blue-500 animate-spin"></div>
                             </div>
-                        )
-                    }
-                </>
-            ) :
-                (
-                    <div className="ALL">
-                        {(loading || trendData.isLoading) ? (
-                            <div className="flex flex-col items-center py-8 gap-4">
-                                <div className="relative w-12 h-12">
-                                    <div className="absolute inset-0 rounded-full border-4 border-t-purple-500 border-l-blue-500 animate-spin"></div>
-                                </div>
-                                <span className="text-xs font-medium tracking-widest text-gray-500 uppercase animate-pulse">Loading Tracks</span>
-                            </div>
-                        ) : recentCategory === 'All' ? (
+                            <span className="text-xs font-medium tracking-widest text-gray-500 uppercase animate-pulse">Loading Tracks</span>
+                        </div>
+                    ) : recentCategory === 'All' ? (
+                        <div className="flex flex-col gap-2">
+                            {tracks?.tracks?.track.map((track: Track, index: number) => (
+                                <TrackRow
+                                    key={index}
+                                    name={track.name}
+                                    artist={track.artist.name}
+                                    imageUrl={trendData.imageUrl[index]}
+                                    duration={formatDuration(track.duration)}
+                                    id={id++}
+                                    goingTime="0:00"
+                                />
+                            ))}
+                        </div>
+                    ) :
+
+                        recentCategory !== 'All' && recentCategory !== 'My playlists' && (
+
                             <div className="flex flex-col gap-2">
-                                {tracks?.tracks?.track.map((track: Track, index: number) => (
-                                    <TrackRow
-                                        key={index}
-                                        name={track.name}
-                                        artist={track.artist.name}
-                                        imageUrl={trendData.imageUrl[index]}
-                                        duration={formatDuration(track.duration)}
-                                        id={id++}
-                                        goingTime="0:00"
-                                    />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="GENRE flex flex-col gap-2">
                                 {selectByGenre.data?.tracks.map((track: Track, index: number) => (
                                     <TrackRow
                                         key={index}
@@ -360,10 +385,63 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                 ))}
                             </div>
                         )}
-                    </div>
-                )
-            }
 
+                    {recentCategory == 'My playlists' && (
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {playlists.length > 0 && (
+                                playlists.map((playlist, index) => (
+                                    <div key={index} className="bg-[#1e1e1e] hover:bg-[#2a2a2a] transition-colors rounded-xl p-4 flex items-center gap-4 group cursor-default">
+                                        <div className="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden">
+                                            <img
+                                                src={playlist.imageUrl || "/default-cover.jpg"}
+                                                alt={playlist.name}
+                                                className="w-full h-full border p-2 rounded-lg border-gray-700  object-cover"
+                                            />
+                                        </div>
+
+                                        <div className="flex flex-col  justify-between flex-grow h-full py-1">
+                                            <div>
+                                                <h2 className="text-white font-bold text-lg line-clamp-1">{playlist.name}</h2>
+                                                <p className="text-gray-400 text-sm">{playlist.tracks ? playlist.tracks.length : 0} tracks</p>
+                                            </div>
+
+                                            <div className="flex items-center gap-3 mt-2">
+                                                <button className="p-2 cursor-pointer bg-white/10 hover:bg-white/20 rounded-full transition-all">
+                                                    <Play className="w-4 h-4 text-white fill-white" />
+                                                </button>
+                                                <div className="flex gap-2 ml-auto">
+                                                    <button className="p-1.5 cursor-pointer text-gray-500 hover:text-white transition-colors">
+                                                        <Settings className="w-4 h-4" />
+                                                    </button>
+                                                    <button className="p-1.5 cursor-pointer text-gray-500 hover:text-red-500 transition-colors">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )
+                            }
+                            <div className='ADD-PLAYLIST-BUTTON'>
+                                <button onClick={() => {
+                                    const newPlaylist: Playlist = {
+                                        id: Date.now(),
+                                        name: `New Playlist ${playlists.length + 1}`,
+                                        tracks: [],
+                                        imageUrl: "/default-cover.jpg"
+                                    };
+                                    setPlaylists((prev) => [...prev, newPlaylist]);
+                                }} className="w-full h-32 cursor-pointer border-2 border-dashed border-gray-500 rounded-lg flex items-center justify-center text-gray-500 hover:border-gray-300 transition-colors">
+                                    <h1 className="text-sm font-medium">+ Add Playlist</h1>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )
+            }
             {
                 activeVideoId && (
                     <div className="hidden pointer-events-none opacity-100">
@@ -381,54 +459,6 @@ export default MusicList;
 
 //^ ПРОИГРОВКА СЛЕДУЮЩЕГО ТРЕКА ПО ЗАВЕРШЕНИЮ ТЕКУЩЕГО (МОЖЕТ БЫТЬ СЛОЖНО ИЗ-ЗА YOUTUBE API)
 //? РЕАЛИЗОВАТЬ ВОЗМОЖНОСТЬ ПЕРЕТАСКИВАНИЯ ТРЕКОВ ДЛЯ ИЗМЕНЕНИЯ ИХ ПОРЯДКА В СПИСКЕ
-//*КНОПКА СЛЕДУЮЩИЙ И ПРЕДЫДУЩИЙ ТРЕК
-//! СДЕЛАТЬ ФУНКЦИЯ ДЛЯ ДОБАВЛЕНИЯ ТРЕКА В ПЛЕЙЛИСТ И ОТДЕЛЬНЫЙ КОМПОНЕНТ ДЛЯ ПЛЕЙЛИСТОВ, ГДЕ МОЖНО БУДЕТ ИХ СОЗДАВАТЬ И УДАЛЯТЬ
-
-
-
-// const PlaylistCard = ({ name, trackCount, imageUrl }: PlaylistCardProps) => (
-//   <div className="bg-[#1a1a1a] p-4 rounded-xl hover:bg-[#252525] transition-all group cursor-pointer">
-//     <div className="flex gap-4 items-center">
-//       {/* Обложка */}
-//       <img 
-//         src={imageUrl} 
-//         alt={name} 
-//         className="w-24 h-24 rounded-lg object-cover shadow-lg"
-//       />
-      
-//       {/* Инфо */}
-//       <div className="flex-1">
-//         <h3 className="text-white font-bold text-lg truncate">{name}</h3>
-//         <p className="text-gray-400 text-sm">{trackCount} tracks</p>
-        
-//         {/* Кнопки управления (как на дизайне) */}
-//         <div className="flex gap-3 mt-3">
-//           <button className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white">
-//             <Play size={16} fill="white" />
-//           </button>
-//           <button className="p-2 text-gray-400 hover:text-white">
-//             <Pencil size={16} />
-//           </button>
-//           <button className="p-2 text-gray-400 hover:text-red-500">
-//             <Trash2 size={16} />
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   </div>
-// );
-
-// export const PlaylistGrid = ({ playlists }: { playlists: any[] }) => {
-//   return (
-//     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-//       {playlists.map((playlist) => (
-//         <PlaylistCard 
-//           key={playlist.id}
-//           name={playlist.name}
-//           trackCount={playlist.tracks.length}
-//           imageUrl={playlist.cover || 'https://via.placeholder.com/150'}
-//         />
-//       ))}
-//     </div>
-//   );
-// };
+//* КНОПКА СЛЕДУЮЩИЙ И ПРЕДЫДУЩИЙ ТРЕК
+//~ ДОБАВЛЕНИЕ PLAYLIST BUTTON 
+    

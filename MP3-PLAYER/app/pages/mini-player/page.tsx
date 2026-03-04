@@ -4,6 +4,7 @@ import { Play, Pause, SkipBack, SkipForward, Loader2, Star, HeartOff } from 'luc
 import { useYoutubePlayer } from '../../hooks/useYoutubePlayer';
 import { setTimeout } from 'node:timers/promises';
 
+
 export default function MiniPlayer() {
     const [track, setTrack] = useState<any>(null);
     const [previousTrack, setPreviousTrack] = useState<any>(null);
@@ -28,10 +29,10 @@ export default function MiniPlayer() {
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const formatGoingTime = (goingTime: number): number => {
+    const formatGoingTime = (goingTime: number) => {
         if (goingTime > 10000) {
             goingTime = Math.floor(goingTime / 1000);
-        } return goingTime.toString();
+        } return goingTime;
     }
 
     const FormatDurationPlusExtraSeconds = (duration: string | number): string => {
@@ -58,19 +59,21 @@ export default function MiniPlayer() {
                 if (event.data.track) {
                     setTrack(event.data.track);
                     setPreviousTrack(event.data.track);
-
                 } else {
-                    setTrack(previousTrack);
+                    // when the main window stops playback, clear our state
+                    setTrack(null);
                 }
             } else if (event.data.type === 'PLAY_TRACK') {
                 const t = event.data.track;
                 if (t?.name && t?.artist) {
                     playTrack(t.name, t.artist, t.imageUrl);
                 }
+            } else if (event.data.type === 'STOP_TRACK') {
+                // update local state when someone else stops
+                setTrack((prev: any) => prev ? { ...prev, isPlaying: false } : prev);
             } else if (event.data.type === 'FAVORITES_UPDATE') {
                 console.log('FAVORITES_UPDATE received:', event.data.favorites);
                 setFavorites(event.data.favorites);
-
             }
         };
 
@@ -176,13 +179,7 @@ export default function MiniPlayer() {
                                 {track.isLoadingVideo ? (
                                     <Loader2 className="w-8 h-8 duration-300 animate-spin" />
                                 ) : (
-                                    <Play className="w-8 h-8"
-                                        onClick={() => {
-                                            setTrack((prev: any) => ({ ...prev, isPlaying: true, isLoadingVideo: true }));
-                                            playTrack(track.name, track.artist, track.imageUrl);
-                                            channelRef.current?.postMessage({ type: 'PLAY_TRACK', track: { name: track.name, artist: track.artist, imageUrl: track.imageUrl } });
-                                        }}
-                                    />
+                                    <Play className="w-8 h-8" />
                                 )}
                             </button>
                         ) : (
@@ -235,7 +232,7 @@ export default function MiniPlayer() {
                         <div className='w-full h-1 bg-white/40 rounded-full mt-4'>
                             <div
                                 className='h-full bg-white rounded-full flex justify-end items-center'
-                                style={{ width: `${(track.goingTime / formatGoingTime(track.duration)) * 100}%` }}
+                                style={{ maxWidth: '100%', width: `${(track.goingTime / formatGoingTime(track.duration)) * 100}%` }}
                             >
                                 <div className='progress-bar-tracker w-2.5 h-2.5 bg-white rounded-2xl absolute'></div>
                             </div>
