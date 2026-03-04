@@ -28,13 +28,13 @@ export default function MiniPlayer() {
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const formatGoingTime = (goingTime: number): string => {
+    const formatGoingTime = (goingTime: number): number => {
         if (goingTime > 10000) {
             goingTime = Math.floor(goingTime / 1000);
         } return goingTime.toString();
     }
 
-    const FormatDurationPlusExtraSeconds = (duration: string | number): string => { //~ IN ORDER TO FIX PROGRESS BAR GOING A BIT FASTER THAN ACTUAL DURATION
+    const FormatDurationPlusExtraSeconds = (duration: string | number): string => {
         const num = typeof duration === 'string' ? parseInt(duration) : duration;
         if (num == 0) return '0:00';
 
@@ -235,7 +235,7 @@ export default function MiniPlayer() {
                         <div className='w-full h-1 bg-white/40 rounded-full mt-4'>
                             <div
                                 className='h-full bg-white rounded-full flex justify-end items-center'
-                                style={{ width: `${(track.goingTime / track.duration) * 100}%` }}
+                                style={{ width: `${(track.goingTime / formatGoingTime(track.duration)) * 100}%` }}
                             >
                                 <div className='progress-bar-tracker w-2.5 h-2.5 bg-white rounded-2xl absolute'></div>
                             </div>
