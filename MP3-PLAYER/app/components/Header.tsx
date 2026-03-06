@@ -88,10 +88,10 @@ const Header = ({ onMusicUpdate, setInputValue, deleteSearch }: HeaderProps) => 
                     </div>
                 )}
             </div>
-            <div className="flex content-between cursor-pointer justify-between w-full relative">
-                <div onClick={handleReload} className="title flex items-center content-center gap-1.5">
+            <div className="flex content-between justify-between w-full relative">
+                <div onClick={handleReload} className="title cursor-pointer flex items-center content-center gap-1.5">
                     <Image src="music.svg" alt="" width={52} height={52}
-                        className="p-1.5 rounded-lg bg-[#3b33339a]"
+                        className="p-1.5  rounded-lg bg-[#3b33339a]"
                     />
                     <h1 className="font-fb w-full text-[26px] text-white">Music Stream</h1>
                 </div>

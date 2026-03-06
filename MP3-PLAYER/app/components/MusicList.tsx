@@ -20,7 +20,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const searchData = useTrackInfo(music || []);
     const genreData = useTrackInfo(selectByGenre.data?.tracks || []);
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
-    const [playlistPopup, setPlaylistPopup] = useState(false);
 
     let id = 0 // Setted id
 
@@ -177,12 +176,9 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         };
     }, [activeVideoId, updateGoingTime, currentTrack?.goingTime, currentTrack?.duration, currentTrack?.name]);
 
-    const openAddToPlaylistPopup = () => {
-        setPlaylistPopup(true);
-    }
+
 
     const addToPlaylist = (playlistId: number, name: string, imageUrl: string, duration: string) => {
-        // debug helper: print out current playlists state and the one we're trying to use
         console.log('all playlists state:', playlists);
     }
 
@@ -196,6 +192,13 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
             id,
             goingTime = '0:00'
         }: { name: string, artist: string, imageUrl: string, duration: string, isLoading?: boolean, id: number, goingTime?: string }) => {
+
+        const [playlistPopup, setPlaylistPopup] = useState(false);
+
+        const openAddToPlaylistPopup = () => {
+            setPlaylistPopup(!playlistPopup);
+        }
+
         const active = isFavorite(name, artist);
 
         const isCurrentActive = currentTrack?.name === name && currentTrack?.artist === artist;
@@ -205,13 +208,13 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
                 className={`cursor-pointer card rounded-lg flex justify-between w-full p-3.5 transition-colors ${isCurrentActive ? 'bg-[#7776766d] ring-1 ring-blue-500' : 'bg-[#7776763b] hover:bg-[#7776765d]'
                     } text-white`}
-                     onClick={(e) => {
-                        e.stopPropagation();
-                        handlePopOut();
-                    }}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    handlePopOut();
+                }}
             >
                 <div className="title opacity  flex gap-6 items-center"
-                   
+
                 >
                     <div className="relative w-16 h-16 shrink-0 flex items-center justify-center bg-gray-700 rounded-md overflow-hidden group">
                         {isLoading ? (
@@ -270,7 +273,20 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                             addToPlaylist(id, name, imageUrl, duration);
                             openAddToPlaylistPopup();
                         }}
-                        className="w-5 h-5 text-gray-400 hover:text-white transition-colors" />
+                        className="w-5 h-5 relative text-gray-400 hover:text-white transition-colors" />
+                    {playlistPopup && (
+                        <div className="absolute bot-0 mt-8 ml-[-90] w-48 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg z-10">
+                            {playlists.length > 0 ? (
+                                playlists.map((pl) => (
+                                    <div key={pl.id} className="px-4 py-2 hover:bg-white/10 cursor-pointer">
+                                        {pl.name}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="px-4 py-2 text-gray-400">No playlists available</div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -393,11 +409,17 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                 playlists.map((playlist, index) => (
                                     <div key={index} className="bg-[#1e1e1e] hover:bg-[#2a2a2a] transition-colors rounded-xl p-4 flex items-center gap-4 group cursor-default">
                                         <div className="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden">
-                                            <img
-                                                src={playlist.imageUrl || "/default-cover.jpg"}
-                                                alt={playlist.name}
-                                                className="w-full h-full border p-2 rounded-lg border-gray-700  object-cover"
-                                            />
+                                            {playlist.imageUrl ? (
+                                                <img
+                                                    src={playlist.imageUrl || "/default-cover.jpg"}
+                                                    alt={playlist.name}
+                                                    className="w-full h-full border p-2 rounded-lg border-gray-700 object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full border p-2 rounded-lg border-gray-700 flex items-center justify-center text-gray-500">
+                                                    <span className="text-sm">No Image</span>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="flex flex-col  justify-between flex-grow h-full py-1">
@@ -430,7 +452,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                         id: Date.now(),
                                         name: `New Playlist ${playlists.length + 1}`,
                                         tracks: [],
-                                        imageUrl: "/default-cover.jpg"
+                                        imageUrl: ""
                                     };
                                     setPlaylists((prev) => [...prev, newPlaylist]);
                                 }} className="w-full h-32 cursor-pointer border-2 border-dashed border-gray-500 rounded-lg flex items-center justify-center text-gray-500 hover:border-gray-300 transition-colors">
@@ -461,4 +483,3 @@ export default MusicList;
 //? РЕАЛИЗОВАТЬ ВОЗМОЖНОСТЬ ПЕРЕТАСКИВАНИЯ ТРЕКОВ ДЛЯ ИЗМЕНЕНИЯ ИХ ПОРЯДКА В СПИСКЕ
 //* КНОПКА СЛЕДУЮЩИЙ И ПРЕДЫДУЩИЙ ТРЕК
 //~ ДОБАВЛЕНИЕ PLAYLIST BUTTON 
-    
