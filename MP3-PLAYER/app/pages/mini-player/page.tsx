@@ -35,7 +35,7 @@ export default function MiniPlayer() {
         } return goingTime;
     }
 
-    const FormatDurationPlusExtraSeconds = (duration: string | number): string => { //~ IN ORDER TO FIX PROGRESS BAR GOING A BIT FASTER THAN ACTUAL DURATION
+    const FormatDurationPlusExtraSeconds = (duration: string | number): string => {
         const num = typeof duration === 'string' ? parseInt(duration) : duration;
         if (num == 0) return '0:00';
 

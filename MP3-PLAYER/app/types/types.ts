@@ -7,7 +7,6 @@ export interface CategoryType {
 
 
 
-
 export interface TopTracksResponseType {
     tracks: {
         track: Track[];
@@ -22,16 +21,16 @@ export interface UseTrackToReturn {
     genre: string[];
     isLoading: boolean;
 }
-    export interface favoritesType {
+export interface favoritesType {
+    name: string;
+    artist: {
         name: string;
-        artist: {
-            name: string;
-        };
-        imageUrl: string;
-        duration: string;
-        genre: string;
-        goingTime: number;
-    }
+    };
+    imageUrl: string;
+    duration: string;
+    genre: string;
+    goingTime: number;
+}
 
 export interface MusicListProps {
     music: Track[];
@@ -69,7 +68,6 @@ export interface PlayingTrack {
     goingTime: number;
 }
 
-// Represents a single playlist; tracksCount is derived via `tracks.length`.
 export interface Playlist {
     id?: string | number;
     name: string;
@@ -77,7 +75,6 @@ export interface Playlist {
     imageUrl?: string;
 }
 
-// Collection of playlists for APIs or app state
 export interface PlaylistCollection {
     playlists: Playlist[];
 }
