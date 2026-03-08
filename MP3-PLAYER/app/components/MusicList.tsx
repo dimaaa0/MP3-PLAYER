@@ -442,7 +442,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                     </div>
                 )
             }
-
         </div >
     );
 };
