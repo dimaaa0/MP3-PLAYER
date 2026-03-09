@@ -50,15 +50,25 @@ export interface HeaderProps {
 
 export interface Track {
     name: string;
-    artist: {
-        name: string;
-    };
+    artist: string;
     duration: string;
     image?: { size: string, '#text': string }[];
     url: string;
     mbid?: string;
     goingTime?: number;
 }
+
+// export interface Track {
+//     name: string;
+//     artist: {
+//         name: string;
+//     };
+//     duration: string;
+//     image?: { size: string, '#text': string }[];
+//     url: string;
+//     mbid?: string;
+//     goingTime?: number;
+// }
 
 export interface PlayingTrack {
     name: string;

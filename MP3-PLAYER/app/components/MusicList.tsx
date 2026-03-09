@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, Settings, Play, Pause, Loader2, Trash2, AlignVerticalJustifyStartIcon } from 'lucide-react'; // Добавил иконки
+import { Star, Pencil, Settings, Play, Pause, Loader2, Trash2 } from 'lucide-react'; // Добавил иконки
 import { Track, favoritesType, MusicListProps, Playlist, PlaylistCollection } from '../types/types';
 import { useState, useEffect, useCallback } from 'react';
 import { useTrackInfo } from '../hooks/useTrackInfo';
@@ -20,6 +20,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const searchData = useTrackInfo(music || []);
     const genreData = useTrackInfo(selectByGenre.data?.tracks || []);
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
+    const [editingPlaylistId, setEditingPlaylistId] = useState<number | null>(null);
+    const [editingPlaylistName, setEditingPlaylistName] = useState<string>('');
 
     let id = 0 // Setted id
 
@@ -105,7 +107,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         }
     }, [currentTrack, isLoadingVideo, activeVideoId]);
 
-    // helper to broadcast stop from anywhere in this component
     const broadcastStop = useCallback(() => {
         const ch = new BroadcastChannel('music_player_channel');
         ch.postMessage({ type: 'STOP_TRACK', track: currentTrack ? { name: currentTrack.name, artist: currentTrack.artist } : null });
@@ -115,11 +116,9 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     useEffect(() => {
         const channel = new BroadcastChannel('music_player_channel');
 
-        // send initial state when component mounts
         broadcastTrackUpdate(channel);
 
         if (!currentTrack) {
-            // notify listeners that playback has stopped
             channel.postMessage({ type: 'STOP_TRACK' });
         }
 
@@ -176,11 +175,37 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         };
     }, [activeVideoId, updateGoingTime, currentTrack?.goingTime, currentTrack?.duration, currentTrack?.name]);
 
-
-
-    const addToPlaylist = (playlistId: number, name: string, imageUrl: string, duration: string) => {
-        console.log('all playlists state:', playlists);
+    const deletePlaylist = (id: string | number | undefined) => {
+        setPlaylists((prev) => prev.filter(pl => pl.id !== id));
     }
+
+    const savePlaylistName = (playlistId: number, newName: string) => {
+        setPlaylists((prev) => prev.map(pl => pl.id === playlistId ? { ...pl, name: newName } : pl));
+        setEditingPlaylistId(null);
+    };
+
+    const cancelEditingPlaylistName = () => {
+        setEditingPlaylistId(null);
+    };
+
+    const addToPlaylist = (playlistId: number, name: string, artist: string, imageUrl: string, duration: string) => {
+        setPlaylists((prev) => prev.map(pl => {
+            if (pl.id === playlistId) {
+                const existingTrack = pl.tracks?.some(t => t.name === name && t.artist === artist);
+                if (existingTrack) {
+                    return pl; // Не добавляем трек, если он уже есть в плейлисте
+                } else {
+                    const newTrack: Track = { name, artist: artist || name, imageUrl, duration };
+                    return { ...pl, tracks: pl.tracks ? [...pl.tracks, newTrack] : [newTrack] };
+                }
+            }
+            return pl;
+        }));
+    }
+
+    useEffect(() => {
+        console.log('Updated Playlists:', playlists);
+    }, [playlists]);
 
     const TrackRow = (
         {
@@ -206,7 +231,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         return (
             <div
 
-                className={`cursor-pointer card rounded-lg flex justify-between w-full p-3.5 transition-colors ${isCurrentActive ? 'bg-[#7776766d] ring-1 ring-blue-500' : 'bg-[#7776763b] hover:bg-[#7776765d]'
+                className={`cursor-pointer card rounded-lg select-none  flex justify-between w-full p-3.5 transition-colors ${isCurrentActive ? 'bg-[#7776766d] ring-1 ring-blue-500' : 'bg-[#7776763b] hover:bg-[#7776765d]'
                     } text-white`}
                 onClick={(e) => {
                     e.stopPropagation();
@@ -259,7 +284,9 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                 </div>
                 <div className="details flex items-center gap-2">
                     <h3 className="text-sm tabular-nums mr-2">{duration}</h3>
-                    <h3 className="text-sm tabular-nums mr-2">{isCurrentActive ? currentTrack?.goingTime ? formatDuration(currentTrack.goingTime) : goingTime : goingTime}</h3>
+                    {isCurrentActive && currentTrack?.goingTime && formatDuration(currentTrack.goingTime) !== '0:00' ? (
+                        <h3 className="text-sm tabular-nums mr-2">{formatDuration(currentTrack.goingTime)}</h3>
+                    ) : null}
                     <Star
                         onClick={(e) => {
                             e.stopPropagation();
@@ -270,21 +297,35 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                     <Settings
                         onClick={(e) => {
                             e.stopPropagation();
-                            addToPlaylist(id, name, imageUrl, duration);
                             openAddToPlaylistPopup();
                         }}
-                        className="w-5 h-5 relative text-gray-400 hover:text-white transition-colors" />
+                        className="w-5 h-5 relative  text-gray-400 hover:text-white transition-colors" />
                     {playlistPopup && (
-                        <div className="absolute bot-0 mt-8 ml-[-90] w-48 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg z-10">
-                            {playlists.length > 0 ? (
-                                playlists.map((pl) => (
-                                    <div key={pl.id} className="px-4 py-2 hover:bg-white/10 cursor-pointer">
-                                        {pl.name}
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="px-4 py-2 text-gray-400">No playlists available</div>
-                            )}
+                        <div className="absolute  overflow-y-auto hide-scrollbar  mt-30 ml-[-90] w-48 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg z-10"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                            }}
+                        >
+                            <h2 className="px-4 py-2 text-lg cursor-default font-thin text-white border-b border-gray-600">Add to Playlist</h2>
+                            <div className='custom-scrollbar max-h-45 overflow-y-auto'
+                            >
+
+                                {playlists.length > 0 ? (
+                                    playlists.map((pl) => (
+                                        <div key={pl.id} className="px-4 line-clamp-1 overflow-hidden truncate py-2 hover:bg-white/10 cursor-pointer"
+                                            onClick={() => {
+                                                openAddToPlaylistPopup();
+                                                addToPlaylist(pl.id, name, artist, imageUrl, duration);
+                                            }}
+                                            autoFocus
+                                        >
+                                            {pl.name}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="px-4 py-2 cursor-default text-gray-400">No playlists available</div>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>
@@ -417,14 +458,33 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                                 />
                                             ) : (
                                                 <div className="w-full h-full border p-2 rounded-lg border-gray-700 flex items-center justify-center text-gray-500">
-                                                    <span className="text-sm">No Image</span>
+                                                    <img src={playlist?.tracks[playlist?.tracks.length - 1]?.imageUrl || "/default-cover.jpg"} alt="" />
                                                 </div>
                                             )}
                                         </div>
 
-                                        <div className="flex flex-col  justify-between flex-grow h-full py-1">
-                                            <div>
-                                                <h2 className="text-white font-bold text-lg line-clamp-1">{playlist.name}</h2>
+                                        <div className="flex flex-col justify-between grow h-full py-1 min-w-0">
+                                            <div className='min-w-0'>
+                                                {editingPlaylistId === playlist.id ? (
+                                                    <input
+                                                        value={editingPlaylistName}
+                                                        onChange={(e) => setEditingPlaylistName(e.target.value)}
+                                                        onBlur={() => savePlaylistName(playlist.id, editingPlaylistName)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') savePlaylistName(playlist.id, editingPlaylistName);
+                                                            if (e.key === 'Escape') cancelEditingPlaylistName();
+                                                        }}
+                                                        autoFocus
+                                                        className="w-full bg-transparent border-b border-grey-100 text-white text-lg font-bold outline-none truncate"
+                                                    />
+                                                ) : (
+                                                    <h2
+                                                        className="text-white font-bold text-lg line-clamp-1 overflow-hidden truncate cursor-text"
+
+                                                    >
+                                                        {playlist.name}
+                                                    </h2>
+                                                )}
                                                 <p className="text-gray-400 text-sm">{playlist.tracks ? playlist.tracks.length : 0} tracks</p>
                                             </div>
 
@@ -433,11 +493,21 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                                     <Play className="w-4 h-4 text-white fill-white" />
                                                 </button>
                                                 <div className="flex gap-2 ml-auto">
-                                                    <button className="p-1.5 cursor-pointer text-gray-500 hover:text-white transition-colors">
-                                                        <Settings className="w-4 h-4" />
+                                                    <button className="p-1.5 cursor-pointer text-gray-500 hover:text-white transition-colors"
+                                                        onClick={() => {
+                                                            setEditingPlaylistId(playlist.id);
+                                                            setEditingPlaylistName(playlist.name);
+                                                        }}
+                                                    >
+                                                        <Pencil className="w-4 h-4"
+                                                        />
                                                     </button>
-                                                    <button className="p-1.5 cursor-pointer text-gray-500 hover:text-red-500 transition-colors">
-                                                        <Trash2 className="w-4 h-4" />
+                                                    <button className="p-1.5 cursor-pointer text-gray-500 hover:text-red-500 transition-colors"
+                                                        onClick={() => deletePlaylist(playlist.id)}
+                                                    >
+                                                        <Trash2 className="w-4 h-4"
+
+                                                        />
                                                     </button>
                                                 </div>
                                             </div>
@@ -450,7 +520,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                 <button onClick={() => {
                                     const newPlaylist: Playlist = {
                                         id: Date.now(),
-                                        name: `New Playlist ${playlists.length + 1}`,
+                                        name: `New Playlist `,
                                         tracks: [],
                                         imageUrl: ""
                                     };
@@ -482,4 +552,5 @@ export default MusicList;
 //^ ПРОИГРОВКА СЛЕДУЮЩЕГО ТРЕКА ПО ЗАВЕРШЕНИЮ ТЕКУЩЕГО (МОЖЕТ БЫТЬ СЛОЖНО ИЗ-ЗА YOUTUBE API)
 //? РЕАЛИЗОВАТЬ ВОЗМОЖНОСТЬ ПЕРЕТАСКИВАНИЯ ТРЕКОВ ДЛЯ ИЗМЕНЕНИЯ ИХ ПОРЯДКА В СПИСКЕ
 //* КНОПКА СЛЕДУЮЩИЙ И ПРЕДЫДУЩИЙ ТРЕК
-//~ ДОБАВЛЕНИЕ PLAYLIST BUTTON 
+//~ ДОБАВЛЕНИЕ PLAYLIST BUTTON
+//! РАСКИДАТЬ ПО КОМПОНЕНТАМ MUSICLIST
