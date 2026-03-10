@@ -3,11 +3,13 @@
 import { Star, Pencil, Settings, Play, Pause, Loader2, Trash2 } from 'lucide-react'; // Добавил иконки
 import { Track, favoritesType, MusicListProps, Playlist, PlaylistCollection } from '../types/types';
 import { useState, useEffect, useCallback } from 'react';
+import Image from "next/image"
 import { useTrackInfo } from '../hooks/useTrackInfo';
 import { useTopTracks } from '../hooks/useTopTracks';
 import { useSelectByGenre } from '../hooks/useSelectByGenre';
 import { useYoutubePlayer } from '../hooks/useYoutubePlayer';
 import { current } from '@reduxjs/toolkit';
+import Link from 'next/link';
 
 const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const [favorites, setFavorites] = useState<favoritesType[]>([]);
@@ -151,7 +153,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
             'popup=yes', 'resizable=no', 'scrollbars=no'
         ].join(',');
 
-        window.open('/pages/mini-player', 'MusicStreamPlayer', features);
+        window.open('/mini-player', 'MusicStreamPlayer', features);
     };
 
     useEffect(() => {
@@ -445,10 +447,10 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
                     {recentCategory == 'My playlists' && (
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid  grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {playlists.length > 0 && (
                                 playlists.map((playlist, index) => (
-                                    <div key={index} className="bg-[#1e1e1e] hover:bg-[#2a2a2a] transition-colors rounded-xl p-4 flex items-center gap-4 group cursor-default">
+                                    <div key={index} className="bg-[#1e1e1e] cursor-pointer hover:bg-[#2a2a2a] transition-colors rounded-xl p-4 flex items-center gap-4 group ">
                                         <div className="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden">
                                             {playlist.imageUrl ? (
                                                 <img
@@ -464,53 +466,60 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                         </div>
 
                                         <div className="flex flex-col justify-between grow h-full py-1 min-w-0">
-                                            <div className='min-w-0'>
-                                                {editingPlaylistId === playlist.id ? (
-                                                    <input
-                                                        value={editingPlaylistName}
-                                                        onChange={(e) => setEditingPlaylistName(e.target.value)}
-                                                        onBlur={() => savePlaylistName(playlist.id, editingPlaylistName)}
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === 'Enter') savePlaylistName(playlist.id, editingPlaylistName);
-                                                            if (e.key === 'Escape') cancelEditingPlaylistName();
-                                                        }}
-                                                        autoFocus
-                                                        className="w-full bg-transparent border-b border-grey-100 text-white text-lg font-bold outline-none truncate"
-                                                    />
-                                                ) : (
-                                                    <h2
-                                                        className="text-white font-bold text-lg line-clamp-1 overflow-hidden truncate cursor-text"
+                                            <Link href={`/playlist-data`}>
+                                                <div className='min-w-0'>
+                                                    {editingPlaylistId === playlist.id ? (
 
-                                                    >
-                                                        {playlist.name}
-                                                    </h2>
-                                                )}
-                                                <p className="text-gray-400 text-sm">{playlist.tracks ? playlist.tracks.length : 0} tracks</p>
-                                            </div>
-
-                                            <div className="flex items-center gap-3 mt-2">
-                                                <button className="p-2 cursor-pointer bg-white/10 hover:bg-white/20 rounded-full transition-all">
-                                                    <Play className="w-4 h-4 text-white fill-white" />
-                                                </button>
-                                                <div className="flex gap-2 ml-auto">
-                                                    <button className="p-1.5 cursor-pointer text-gray-500 hover:text-white transition-colors"
-                                                        onClick={() => {
-                                                            setEditingPlaylistId(playlist.id);
-                                                            setEditingPlaylistName(playlist.name);
-                                                        }}
-                                                    >
-                                                        <Pencil className="w-4 h-4"
+                                                        <input
+                                                            value={editingPlaylistName}
+                                                            onChange={(e) => setEditingPlaylistName(e.target.value)}
+                                                            onBlur={() => savePlaylistName(playlist.id, editingPlaylistName)}
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') savePlaylistName(playlist.id, editingPlaylistName);
+                                                                if (e.key === 'Escape') cancelEditingPlaylistName();
+                                                            }}
+                                                            autoFocus
+                                                            className="w-full bg-transparent border-b border-grey-100 text-white text-lg font-bold outline-none truncate"
                                                         />
-                                                    </button>
-                                                    <button className="p-1.5 cursor-pointer text-gray-500 hover:text-red-500 transition-colors"
-                                                        onClick={() => deletePlaylist(playlist.id)}
-                                                    >
-                                                        <Trash2 className="w-4 h-4"
+                                                    ) : (
+                                                        <h2
+                                                            className="text-white font-bold text-lg line-clamp-1 overflow-hidden truncate cursor-text"
 
-                                                        />
-                                                    </button>
+                                                        >
+                                                            {playlist.name}
+                                                        </h2>
+                                                    )}
+                                                    <p className="text-gray-400 text-sm">{playlist.tracks ? playlist.tracks.length : 0} tracks</p>
                                                 </div>
-                                            </div>
+
+                                                <div className="flex items-center gap-3 mt-2">
+                                                    <button className="p-2 cursor-pointer bg-white/10 hover:bg-white/20 rounded-full transition-all">
+                                                        <Play className="w-4 h-4 text-white fill-white" />
+                                                    </button>
+                                                    <div className="flex gap-2 ml-auto">
+                                                        <button className="p-1.5 cursor-pointer text-gray-500 hover:text-white transition-colors"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setEditingPlaylistId(playlist.id);
+                                                                setEditingPlaylistName(playlist.name);
+                                                            }}
+                                                        >
+                                                            <Pencil className="w-4 h-4"
+                                                            />
+                                                        </button>
+                                                        <button className="p-1.5 cursor-pointer text-gray-500 hover:text-red-500 transition-colors"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                deletePlaylist(playlist.id);
+                                                            }}
+                                                        >
+                                                            <Trash2 className="w-4 h-4"
+
+                                                            />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </Link>
                                         </div>
                                     </div>
                                 ))
