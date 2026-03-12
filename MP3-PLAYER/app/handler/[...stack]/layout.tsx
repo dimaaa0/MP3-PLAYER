@@ -1,7 +1,6 @@
 // app/handler/[...stack]/page.tsx
 import { StackHandler } from "@stackframe/stack";
 import { stackClientApp } from "../../../stack/client";
-import Link from "next/link";
 
 export default function Handler(props: any) {
     return (

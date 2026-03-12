@@ -1,6 +1,5 @@
 import React from 'react'
 import { SignUp } from '@stackframe/stack'
-import Link from 'next/link'
 
 const page = () => {
     return (

@@ -1,7 +1,8 @@
 'use client';
+import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Play, Heart, Share2 } from 'lucide-react';
+import { Play, Heart, Share2, ChevronLeft } from 'lucide-react';
 
 const Page = () => {
     const params = useParams();
@@ -35,10 +36,14 @@ const Page = () => {
                                 />
                             </div>
                         )}
-
-                            <h2 className='absolute top-8 left-8 '>Главная</h2>
+                        <Link
+                            href="/"
+                            className="absolute top-8 left-8 rounded-full bg-white/10 hover:bg-white/20 p-2 transition"
+                        >
+                            <ChevronLeft className="text-white" />
+                            <span className="sr-only">Back to main menu</span>
+                        </Link>
                         <div className="pb-2">
-                            <p className="text-sm font-semibold text-gray-300 uppercase tracking-widest">Playlist</p>
                             <h1 className="text-6xl font-black text-white mt-2 line-clamp-3">
                                 {name || 'Playlist Data'}
                             </h1>

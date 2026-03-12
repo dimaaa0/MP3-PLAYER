@@ -36,8 +36,9 @@
 body {
   color: white;
   font-family: var(--font-fr);
-  background-color: rgba(0, 0, 0, 0.938);
-
+  background: linear-gradient(to bottom, #111827, #1f2937, #000000);
+  min-height: 100vh;
+  margin: 0;
 }
 
 .hide-scrollbar::-webkit-scrollbar {

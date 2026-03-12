@@ -9,7 +9,6 @@ import { useTopTracks } from '../hooks/useTopTracks';
 import { useSelectByGenre } from '../hooks/useSelectByGenre';
 import { useYoutubePlayer } from '../hooks/useYoutubePlayer';
 import { current } from '@reduxjs/toolkit';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
@@ -307,7 +306,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                         }}
                         className="w-5 h-5 relative  text-gray-400 hover:text-white transition-colors" />
                     {playlistPopup && (
-                        <div className="absolute  overflow-y-auto hide-scrollbar  mt-30 ml-[-90] w-48 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg z-10"
+                        <div className="absolute  overflow-y-auto hide-scrollbar  mt-34 ml-[-130] w-48 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg z-10"
                             onClick={(e) => {
                                 e.stopPropagation();
                             }}
@@ -480,6 +479,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                                 return (
                                                     <div 
                                                         className="flex flex-col gap-1 h-full cursor-pointer"
+                                                        title="Go to the playlist page"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             router.push(`/playlist-data/${playlist.id}?${query}`);
