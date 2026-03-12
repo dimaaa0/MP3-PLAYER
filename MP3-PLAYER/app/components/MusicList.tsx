@@ -197,7 +197,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
             if (pl.id === playlistId) {
                 const existingTrack = pl.tracks?.some(t => t.name === name && t.artist === artist);
                 if (existingTrack) {
-                    return pl; // Не добавляем трек, если он уже есть в плейлисте
+                    return pl;
                 } else {
                     const newTrack: Track = { name, artist: artist || name, imageUrl, duration };
                     return { ...pl, tracks: pl.tracks ? [...pl.tracks, newTrack] : [newTrack] };
@@ -307,7 +307,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                         }}
                         className="w-5 h-5 relative  text-gray-400 hover:text-white transition-colors" />
                     {playlistPopup && (
-                        <div className="absolute  overflow-y-auto hide-scrollbar  mt-30 ml-[-90] w-48 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg z-10"
+                        <div className="absolute  overflow-y-auto hide-scrollbar  mt-20 ml-[-210] w-48 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg z-10"
                             onClick={(e) => {
                                 e.stopPropagation();
                             }}
@@ -542,8 +542,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                         </div>
                                     </div>
                                 ))
-                            )
-                            }
+                            )}
+
                             <div className='ADD-PLAYLIST-BUTTON'>
                                 <button onClick={() => {
                                     const newPlaylist: Playlist = {

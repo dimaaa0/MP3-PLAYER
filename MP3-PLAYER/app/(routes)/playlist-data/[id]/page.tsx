@@ -3,8 +3,10 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Play, Heart, Share2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const Page = () => {
+    const router = useRouter();
     const params = useParams();
     const searchParams = useSearchParams();
 
@@ -41,7 +43,10 @@ const Page = () => {
                             </div>
                         )}
 
-                        <h2 className='absolute top-8 left-8 '>Главная</h2>
+                        <button className='absolute top-8 left-8 '
+                            onClick={() => router.push('/')}>
+                            Главная
+                        </button>
                         <div className="pb-2">
                             <p className="text-sm font-semibold text-gray-300 uppercase tracking-widest">Playlist</p>
                             <h1 className="text-6xl font-black text-white mt-2 line-clamp-3">
