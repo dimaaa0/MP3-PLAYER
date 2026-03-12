@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, Pencil, Settings, Play, Pause, Loader2, Trash2 } from 'lucide-react'; // Добавил иконки
+import { Star, Pencil, Settings, Play, Pause, Loader2, Trash2 } from 'lucide-react';
 import { Track, favoritesType, MusicListProps, Playlist, PlaylistCollection } from '../types/types';
 import { useState, useEffect, useCallback } from 'react';
 import Image from "next/image"
@@ -475,10 +475,11 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                                 const query = new URLSearchParams({
                                                     name: playlist.name || '',
                                                     count: (playlist.tracks?.length || 0).toString(),
-                                                    imageUrl: playlist.imageUrl || ''
+                                                    imageUrl: playlist.imageUrl || '',
+                                                    tracks: playlist.tracks ? playlist.tracks.map(t => `${t.name}-${t.artist}`).join(',') : ''
                                                 }).toString();
                                                 return (
-                                                    <div 
+                                                    <div
                                                         className="flex flex-col gap-1 h-full cursor-pointer"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
