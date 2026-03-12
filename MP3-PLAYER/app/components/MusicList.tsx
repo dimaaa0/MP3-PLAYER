@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, Pencil, Settings, Play, Pause, Loader2, Trash2 } from 'lucide-react'; // Добавил иконки
+import { Star, Pencil, Settings, Play, Pause, Loader2, Trash2 } from 'lucide-react';
 import { Track, favoritesType, MusicListProps, Playlist, PlaylistCollection } from '../types/types';
 import { useState, useEffect, useCallback } from 'react';
 import Image from "next/image"
@@ -196,7 +196,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
             if (pl.id === playlistId) {
                 const existingTrack = pl.tracks?.some(t => t.name === name && t.artist === artist);
                 if (existingTrack) {
-                    return pl; // Не добавляем трек, если он уже есть в плейлисте
+                    return pl;
                 } else {
                     const newTrack: Track = { name, artist: artist || name, imageUrl, duration };
                     return { ...pl, tracks: pl.tracks ? [...pl.tracks, newTrack] : [newTrack] };
@@ -306,7 +306,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                         }}
                         className="w-5 h-5 relative  text-gray-400 hover:text-white transition-colors" />
                     {playlistPopup && (
-                        <div className="absolute  overflow-y-auto hide-scrollbar  mt-34 ml-[-130] w-48 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg z-10"
+                        <div className="absolute  overflow-y-auto hide-scrollbar  mt-20 ml-[-210] w-48 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg z-10"
                             onClick={(e) => {
                                 e.stopPropagation();
                             }}
@@ -474,10 +474,11 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                                 const query = new URLSearchParams({
                                                     name: playlist.name || '',
                                                     count: (playlist.tracks?.length || 0).toString(),
+                                                    tracks: playlist.tracks ? JSON.stringify(playlist.tracks) : '',
                                                     imageUrl: playlist.imageUrl || ''
                                                 }).toString();
                                                 return (
-                                                    <div 
+                                                    <div
                                                         className="flex flex-col gap-1 h-full cursor-pointer"
                                                         title="Go to the playlist page"
                                                         onClick={(e) => {
@@ -541,8 +542,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                         </div>
                                     </div>
                                 ))
-                            )
-                            }
+                            )}
+
                             <div className='ADD-PLAYLIST-BUTTON'>
                                 <button onClick={() => {
                                     const newPlaylist: Playlist = {

@@ -39,6 +39,7 @@ body {
   background: linear-gradient(to bottom, #111827, #1f2937, #000000);
   min-height: 100vh;
   margin: 0;
+  background-attachment: fixed;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
