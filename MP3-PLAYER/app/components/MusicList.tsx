@@ -9,7 +9,9 @@ import { useTopTracks } from '../hooks/useTopTracks';
 import { useSelectByGenre } from '../hooks/useSelectByGenre';
 import { useYoutubePlayer } from '../hooks/useYoutubePlayer';
 import { current } from '@reduxjs/toolkit';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
 
 const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const router = useRouter();
@@ -25,8 +27,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
     const [editingPlaylistId, setEditingPlaylistId] = useState<number | null>(null);
     const [editingPlaylistName, setEditingPlaylistName] = useState<string>('');
-
-    let id = 0 // Setted id
 
     const formatDuration = (duration: string | number): string => {
         const num = typeof duration === 'string' ? parseInt(duration) : duration;
@@ -217,9 +217,8 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
             imageUrl,
             duration,
             isLoading,
-            id,
-            goingTime = '0:00'
-        }: { name: string, artist: string, imageUrl: string, duration: string, isLoading?: boolean, id: number, goingTime?: string }) => {
+            goingTime = '0:00',
+        }: { name: string, artist: string, imageUrl: string, duration: string, isLoading?: boolean, id: string, goingTime?: string }) => {
 
         const [playlistPopup, setPlaylistPopup] = useState(false);
 
@@ -235,7 +234,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
         return (
             <div
-
                 className={`cursor-pointer card rounded-lg select-none  flex justify-between w-full p-3.5 transition-colors ${isCurrentActive ? 'bg-[#7776766d] ring-1 ring-blue-500' : 'bg-[#7776763b] hover:bg-[#7776765d]'
                     } text-white`}
                 onClick={(e) => {
@@ -284,7 +282,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                     <div className="name flex flex-col justify-center">
                         <h1 className={`text-sm font-bold line-clamp-1 ${isCurrentActive ? 'text-blue-400' : ''}`}>{name}</h1>
                         <h3 className="text-xs text-gray-400">{artist}</h3>
-                        <span className="text-xs text-gray-500">{id}</span>
                     </div>
                 </div>
                 <div className="details flex items-center gap-2">
@@ -374,14 +371,13 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
             {recentCategory === 'Favorites' ? (
                 favorites.length > 0 ? (
                     <div className="flex flex-col gap-2">
-                        {favorites.map((item) => (
+                        {favorites.map((item, index) => (
                             <TrackRow
-                                key={`${item.name}-${item.artist}`}
+                                key={index}
                                 name={item.name}
                                 artist={item.artist}
                                 imageUrl={item.imageUrl}
                                 duration={item.duration}
-                                id={id++}
                                 goingTime="0:00"
                             />
                         ))}
@@ -400,7 +396,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                             imageUrl={searchData.imageUrl[index]}
                             duration={searchData.duration[index] || "--:--"}
                             isLoading={searchData.isLoading}
-                            id={id++}
                             goingTime="0:00"
                         />
                     ))}
@@ -423,7 +418,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                     artist={track.artist.name}
                                     imageUrl={trendData.imageUrl[index]}
                                     duration={formatDuration(track.duration)}
-                                    id={id++}
                                     goingTime="0:00"
                                 />
                             ))}
@@ -441,7 +435,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                         imageUrl={genreData.imageUrl[index]}
                                         duration={formatDuration(track.duration)}
                                         isLoading={genreData.isLoading}
-                                        id={id++}
                                         goingTime="0:00"
                                     />
                                 ))}
@@ -474,13 +467,12 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                                                 const query = new URLSearchParams({
                                                     name: playlist.name || '',
                                                     count: (playlist.tracks?.length || 0).toString(),
-                                                    tracks: playlist.tracks ? JSON.stringify(playlist.tracks) : '',
-                                                    imageUrl: playlist.imageUrl || ''
+                                                    imageUrl: playlist.imageUrl || '',
+                                                    tracks: playlist.tracks ? playlist.tracks.map(t => `${t.name}-${t.artist}-${t.duration}-${t.imageUrl}`).join(',') : ''
                                                 }).toString();
                                                 return (
                                                     <div
                                                         className="flex flex-col gap-1 h-full cursor-pointer"
-                                                        title="Go to the playlist page"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             router.push(`/playlist-data/${playlist.id}?${query}`);
