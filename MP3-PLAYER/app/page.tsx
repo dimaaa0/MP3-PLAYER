@@ -5,6 +5,7 @@ import Category from './components/Category'
 import MusicList from './components/MusicList'
 import { useState } from 'react';
 import { Track } from './types/types'
+import Link from 'next/link'
 
 export default function Home() {
 
@@ -27,6 +28,7 @@ export default function Home() {
         music={currentTracks}
         inputValue={inputValue}
         recentCategory={recentCategory} />
+      <Link href="/prisma">View Prisma Data</Link>
     </div>
   );
 }

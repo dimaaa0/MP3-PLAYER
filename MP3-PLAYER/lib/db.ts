@@ -5,19 +5,15 @@ const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL!,
 });
 
-const prisma = new PrismaClient({ adapter });
+const prismaClientSingleton = () => {
+    return new PrismaClient({ adapter });
+}
 
-// Find all users with their posts
-const users = await prisma.user.findMany({
-    include: { posts: true },
-});
+declare const globalThis: {
+    prismaGlobal: ReturnType<typeof prismaClientSingleton>;
+} & typeof global;
+const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
 
-// Create a user with a post
-const user = await prisma.user.create({
-    data: {
-        email: "alice@prisma.io",
-        posts: {
-            create: { title: "Hello World" },
-        },
-    },
-});
+
+export default prisma
+if (process.env.NODE_ENV !== "production") globalThis.prismaGlobal = prisma;
