@@ -45,7 +45,8 @@ export interface StationData {
 export interface HeaderProps {
     onMusicUpdate: (tracks: Track[]) => void;
     setInputValue: (value: boolean) => void;
-    deleteSearch: (value: string) => void;
+    deleteSearch: number;
+    setRecentCategory?: (category: string) => void;
 }
 
 export interface Track {
@@ -53,6 +54,7 @@ export interface Track {
     artist: string;
     duration: string;
     image?: { size: string, '#text': string }[];
+    imageUrl?: string;
     url: string;
     mbid?: string;
     goingTime?: number;

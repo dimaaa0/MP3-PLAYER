@@ -1,11 +1,14 @@
 'use client'
 
 import { useState } from "react";
-import { CategoryType, HeaderProps } from '../types/types'
+import { CategoryType } from '../types/types';
 
+interface CategoryProps {
+    setRecentCategory?: (category: string) => void;
+    setDeleteSearch: (value: number) => void;
+}
 
-
-export default function Home({ setRecentCategory, setDeleteSearch }: HeaderProps) {
+export default function Home({ setRecentCategory, setDeleteSearch }: CategoryProps) {
 
     const [categories, setCategories] = useState<CategoryType[]>([
         { id: 3, label: 'All', active: true },
@@ -19,8 +22,6 @@ export default function Home({ setRecentCategory, setDeleteSearch }: HeaderProps
         { id: 9, label: 'Electronic', active: false },
         { id: 10, label: 'Indie', active: false },
     ]);
-
-
 
     const handleClick = (id: number) => {
         setDeleteSearch(Date.now()); //^ СБРОС ПОИСКА ПРИ ВЫБОРЕ КАТЕГОРИИ

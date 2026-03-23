@@ -5,7 +5,7 @@ import Image from "next/image"
 import { Search, X } from "lucide-react"
 import Link from "next/link"
 import { useUser, useStackApp, UserButton } from "@stackframe/stack";
-import { Track, trackType, HeaderProps } from '../types/types'
+import { Track, HeaderProps } from '../types/types'
 
 const Header = ({ onMusicUpdate, setInputValue, deleteSearch }: HeaderProps) => {
 
@@ -127,7 +127,7 @@ const Header = ({ onMusicUpdate, setInputValue, deleteSearch }: HeaderProps) => 
                                 <div className="z-[999] absolute top-full left-0 w-full bg-[#1a1a1a] border border-gray-700 rounded-xl mt-2 shadow-2xl overflow-hidden">
                                     <div className={`transition-all duration-500 ease-in-out ${listVisibility ? 'max-h-0 display-none' : 'max-h-80 display-block'}`}>
                                         <div className="max-h-60 overflow-y-auto hide-scrollbar">
-                                            {searchResults.map((track: trackType, index) => (
+                                            {searchResults.map((track: Track, index) => (
                                                 <div key={index} className="px-4 py-2 hover:bg-white/10 cursor-pointer flex flex-col border-b border-white/5 last:border-none">
                                                     <span className="text-sm font-bold">{track.name}</span>
                                                     <span className="text-xs text-gray-400">{track.artist}</span>

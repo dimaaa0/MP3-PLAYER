@@ -11,31 +11,18 @@ async function main() {
     console.log("Attempting to connect to DB...");
     await prisma.$connect();
 
-    const demoAuthor = await prisma.user.upsert({
-        where: { email: "pisarenkodimarik@gmail.com" },
-        update: {},
-        create: {
-            email: "pisarenkodimarik@gmail.com",
-            name: "dmitriy222",
-        },
+    const demoAuthor = '9215b98c-c543-44f1-a7b8-9244a3edf0a9'
+
+
+    await prisma.post.createMany({
+        data: Array.from({ length: 5 }).map((_, i) => ({
+            userId: demoAuthor,
+            name: `Post ${i + 1}`,
+            createdAt: new Date(Date.now() - i * 1000 * 60 * 60 * 24),
+            randomNumber: Number(Math.random().toFixed(0)),
+        })),
     });
-
-    console.log("demoAuthor.id", demoAuthor.id);
-
-    const posts = Array.from({ length: 5 }).map((_, i) => ({
-        authorId: demoAuthor.id,
-        title: `Новый пост #${i + 1}`,
-        randomNumber: parseFloat((Math.random() * 100).toFixed(0)),
-        published: Math.random() > 0.5,
-        date: new Date(Date.now() - 1000 * 60 * 60 * 24 * (i * 2)),
-    }));
-
-    const result = await prisma.post.createMany({
-        data: posts,
-        skipDuplicates: true,
-    });
-
-    console.log("Success! Posts created:", result.count);
+    console.log("Seed data inserted successfully. You have added 5 posts for userId:", demoAuthor);
 }
 
 main()

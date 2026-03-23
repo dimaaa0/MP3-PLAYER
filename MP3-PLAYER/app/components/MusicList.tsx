@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation';
 const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     const router = useRouter();
     const [favorites, setFavorites] = useState<favoritesType[]>([]);
-    const [playlistFolder, setPlaylistFolder] = useState<MusicData[]>([]);
+    const [playlistFolder, setPlaylistFolder] = useState<Track[]>([]);
     const [playlist, setPlaylist] = useState<Playlist[]>([]);
     const { activeVideoId, currentTrack, isLoadingVideo, playTrack, stopPlayback, updateGoingTime } = useYoutubePlayer(); // МУЗЫКАК КОТОРАЯ ИГРАЕТ СЕЙЧАС
     const { tracks, loading } = useTopTracks();
@@ -64,12 +64,12 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
 
     const handleFavorite = (trackName: string, artistName: string, imageUrl: string, duration: string) => {
         setFavorites((prev) => {
-            const isExist = prev.some(item => item.name === trackName && item.artist === artistName);
+            const isExist = prev.some(item => item.name === trackName && item.artist.name === artistName);
             let newFavorites;
             if (isExist) {
-                newFavorites = prev.filter(item => !(item.name === trackName && item.artist === artistName));
+                newFavorites = prev.filter(item => !(item.name === trackName && item.artist.name === artistName));
             } else {
-                newFavorites = [...prev, { name: trackName, artist: artistName, imageUrl, duration }];
+                newFavorites = [...prev, { name: trackName, artist: { name: artistName }, imageUrl, duration, genre: '', goingTime: 0 }];
             }
             return newFavorites;
         });

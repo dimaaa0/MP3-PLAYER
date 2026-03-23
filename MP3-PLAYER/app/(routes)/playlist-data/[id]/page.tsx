@@ -15,10 +15,10 @@ const Page = () => {
     const name = searchParams.get('name');
     const count = searchParams.get('count');
     const imageUrl = searchParams.get('imageUrl');
-    const tracks = searchParams.get('tracks') ? searchParams.get('tracks')!.split(',').map(t => {
+    const tracks: { name: string; artist: string; duration: string; imageUrl: string; }[] = searchParams.get('tracks') ? searchParams.get('tracks')!.split(',').map(t => {
         const [name, artist, duration, imageUrl] = t.split('-');
         return { name, artist, duration, imageUrl };
-    }) : [''];
+    }) : [];
 
     console.log(tracks);
 

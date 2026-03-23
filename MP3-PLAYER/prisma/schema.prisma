@@ -7,18 +7,20 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  posts Post[]
-}
+// model User {
+//   id    Int     @id @default(autoincrement())
+//   email String  @unique
+//   name  String?
+// }
 
 model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  published Boolean  @default(false)
-  authorId  Int?
-  author    User?    @relation(fields: [authorId], references: [id])
-  date      DateTime @default(now())
-}
+  id           String      @id @default(cuid())
+  userId       String?
+  name         String   @default("")
+  createdAt    DateTime @default(now())
+  randomNumber Float    @default(0)
+
+  @@index([userId, name])
+  @@index([createdAt])
+  // author       User?    @relation(fields: [userId], references: [id])
+} 
