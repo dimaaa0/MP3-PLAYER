@@ -1,4 +1,3 @@
-// app/api/search-by-genre/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
 const LASTFM_API_KEY = process.env.NEXT_PUBLIC_LASTFM_API_KEY; // Добавьте ваш API ключ в .env
@@ -52,7 +51,7 @@ async function getTracksByGenre(genre: string) {
         return [];
     }
 
-    // Получаем детальную информацию для каждого трека
+
     const tracksWithDetails = await Promise.all(
         topTracksData.tracks.track.slice(0, 20).map(async (track: any) => {
             try {

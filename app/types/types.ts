@@ -26,6 +26,7 @@ export interface favoritesType {
     artist: {
         name: string;
     };
+    id: string ;
     imageUrl: string;
     duration: string;
     genre: string;
@@ -52,6 +53,7 @@ export interface HeaderProps {
 export interface Track {
     name: string;
     artist: string;
+    id: string;
     duration: string;
     image?: { size: string, '#text': string }[];
     imageUrl?: string;
