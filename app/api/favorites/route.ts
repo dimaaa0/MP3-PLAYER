@@ -20,15 +20,26 @@ export async function POST(req: Request) {
       );
 
     const slug = `${artist}-${name}`.toLowerCase().replace(/\s+/g, "-");
-    console.log("Slug:", slug); 
+    console.log("Slug:", slug);
+
+    const parseDuration = (duration: string | number): number => {
+      if (!duration) return 0;
+      if (typeof duration === "number") return duration;
+      if (!duration.includes(":")) return parseInt(duration) || 0;
+      const [minutes, seconds] = duration.split(":").map(Number);
+      return minutes * 60 + seconds;
+    };
 
     const track = await prisma.track.upsert({
       where: { slug },
-      update: {},
+      update: {
+        duration: parseDuration(duration), // 👈 обновляем если трек уже есть
+        imageUrl: imageUrl || null,
+      },
       create: {
         name,
         artist,
-        duration: duration ? parseInt(duration) : 0,
+        duration: parseDuration(duration),
         imageUrl: imageUrl || null,
         slug,
       },
@@ -53,7 +64,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ favorited: true });
   } catch (error) {
-    console.error("API Error FULL:", error); 
+    console.error("API Error FULL:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },

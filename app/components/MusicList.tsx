@@ -69,19 +69,35 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
     return goingTime;
   };
 
-  const FormatDurationPlusExtraSeconds = (
-    duration: string | number,
-  ): string => {
-    //~ IN ORDER TO FIX PROGRESS BAR GOING A BIT FASTER THAN ACTUAL DURATION
-    const num = typeof duration === "string" ? parseInt(duration) : duration;
-    if (num == 0) return "0:00";
-    else if (!num || isNaN(num)) return "--:--";
+  // const FormatDurationPlusExtraSeconds = (
+  //   duration: string | number,
+  // ): string => {
+  //   //~ IN ORDER TO FIX PROGRESS BAR GOING A BIT FASTER THAN ACTUAL DURATION
+  //   const num = typeof duration === "string" ? parseInt(duration) : duration;
+  //   if (num == 0) return "0:00";
+  //   else if (!num || isNaN(num)) return "--:--";
 
-    const seconds = num > 10000 ? Math.floor(num / 1000) : num;
+  //   const seconds = num > 10000 ? Math.floor(num / 1000) : num;
 
-    const minutes = Math.floor(seconds / 60);
-    const secs = (seconds + 2) % 60;
-    return `${minutes}:${secs.toString().padStart(2, "0")}`;
+  //   const minutes = Math.floor(seconds / 60);
+  //   const secs = (seconds + 2) % 60;
+  //   return `${minutes}:${secs.toString().padStart(2, "0")}`;
+  // };
+
+  const transformToSeconds = (duration: string | number): number => {
+    if (!duration) return 0;
+
+    if (typeof duration === "number") return duration;
+
+    if (!duration.includes(":")) {
+      const num = parseInt(duration);
+      return isNaN(num) ? 0 : num;
+    }
+
+    const parts = duration.split(":").map(Number);
+    if (parts.length < 2 || isNaN(parts[0]) || isNaN(parts[1])) return 0;
+
+    return parts[0] * 60 + parts[1];
   };
 
   useEffect(() => {
@@ -95,7 +111,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
             name: fav.track.name,
             artist: { name: fav.track.artist },
             imageUrl: fav.track.imageUrl || "",
-            duration: String(fav.track.duration),
+            duration: transformToSeconds(fav.track.duration),
             genre: "",
             goingTime: 0,
           })),
@@ -115,8 +131,10 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
       const res = await fetch("/api/favorites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, artist, imageUrl, duration }), // ← шлём данные трека, не id
+        body: JSON.stringify({ name, artist, imageUrl, duration }),
       });
+
+      console.log(String(transformToSeconds(duration)));
 
       if (res.status === 401) {
         router.push("/sign-up");
@@ -135,7 +153,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                 name,
                 artist: { name: artist },
                 imageUrl,
-                duration,
+                duration: String(transformToSeconds(duration)),
                 genre: "",
                 goingTime: 0,
               },
@@ -456,7 +474,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
           <Star
             onClick={(e) => {
               e.stopPropagation();
-              handleFavorite(name, artist, imageUrl, duration); 
+              handleFavorite(name, artist, imageUrl, duration);
             }}
             className={`w-5 h-5 transition-all ${active ? "text-yellow-400 fill-yellow-400 scale-110" : "text-gray-400"}`}
           />
@@ -553,7 +571,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                 name={item.name}
                 artist={item.artist.name}
                 imageUrl={item.imageUrl}
-                duration={item.duration}
+                duration={ formatDuration(item.duration)}
                 goingTime="0:00"
               />
             ))}
