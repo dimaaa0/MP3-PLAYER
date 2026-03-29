@@ -28,7 +28,6 @@ export default function Home() {
         music={currentTracks}
         inputValue={inputValue}
         recentCategory={recentCategory} />
-      <Link href="/prisma">View Prisma Data</Link>
     </div>
   );
 }

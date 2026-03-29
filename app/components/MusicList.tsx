@@ -134,8 +134,6 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
         body: JSON.stringify({ name, artist, imageUrl, duration }),
       });
 
-      console.log(String(transformToSeconds(duration)));
-
       if (res.status === 401) {
         router.push("/sign-up");
         return;
@@ -571,7 +569,7 @@ const MusicList = ({ music, inputValue, recentCategory }: MusicListProps) => {
                 name={item.name}
                 artist={item.artist.name}
                 imageUrl={item.imageUrl}
-                duration={ formatDuration(item.duration)}
+                duration={formatDuration(item.duration)}
                 goingTime="0:00"
               />
             ))}

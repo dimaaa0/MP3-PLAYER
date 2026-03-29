@@ -2,9 +2,6 @@ import { stackServerApp } from "@/stack/server";
 import { redirect } from "next/navigation";
 
 export async function getCurrentUser() {
-    const user = await stackServerApp.getUser();
-    if (!user) {
-        redirect("/sign-up");
-    }
-    return user;
+  const user = await stackServerApp.getUser();
+  return user;
 }
